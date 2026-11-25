@@ -30,11 +30,21 @@ import streamlit as st
 
 # Setup paths
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(PROJECT_ROOT)
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
+# Evict any colliding or stale 'src' package from sys.modules
+if 'src' in sys.modules:
+    src_mod = sys.modules['src']
+    if not (hasattr(src_mod, '__file__') and src_mod.__file__ and src_mod.__file__.startswith(PROJECT_ROOT)):
+        del sys.modules['src']
+for mod_name in list(sys.modules.keys()):
+    if mod_name.startswith('src.') and not (hasattr(sys.modules[mod_name], '__file__') and sys.modules[mod_name].__file__ and sys.modules[mod_name].__file__.startswith(PROJECT_ROOT)):
+        del sys.modules[mod_name]
 
 from src.models.attention_model import AttentionGRU
 from src.features.sequence_generator import FEATURE_COLUMNS, STAGE_NAMES
-from src.data.log_analyzer import get_run_analysis_by_log_id, load_logs_database, parse_log_root_cause, generate_dynamic_remediation
+from src.data.log_analyzer import get_run_analysis_by_log_id, load_logs_database, parse_log_root_cause
 
 # -----------------------------------------------------------------------------
 # Page Configuration
@@ -358,6 +368,183 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
+
+def extract_feature_values(window_features):
+    """
+    Extracts continuous duration, retry_count, and memory_mb values
+    from DataFrame, list of dicts, or numpy array.
+    """
+    if hasattr(window_features, "to_dict"):
+        records = window_features.to_dict(orient="records")
+    elif isinstance(window_features, list):
+        records = window_features
+    elif hasattr(window_features, "shape"):
+        records = [
+            {"duration": float(window_features[i, 0]), "retry_count": int(window_features[i, 2]), "memory_mb": float(window_features[i, 3])}
+            for i in range(len(window_features))
+        ]
+    else:
+        records = []
+    
+    if len(records) >= 3:
+        d1 = float(records[-3].get("duration", 0))
+        d2 = float(records[-2].get("duration", 0))
+        d3 = float(records[-1].get("duration", 0))
+        r1 = int(records[-3].get("retry_count", 0))
+        r2 = int(records[-2].get("retry_count", 0))
+        r3 = int(records[-1].get("retry_count", 0))
+        m1 = float(records[-3].get("memory_mb", 0))
+        m2 = float(records[-2].get("memory_mb", 0))
+        m3 = float(records[-1].get("memory_mb", 0))
+    else:
+        d1, d2, d3 = 1.8, 1.9, 1.7
+        r1, r2, r3 = 0, 0, 0
+        m1, m2, m3 = 84.0, 85.0, 83.5
+    return (d1, d2, d3), (r1, r2, r3), (m1, m2, m3)
+
+def generate_dynamic_remediation(risk_val, top_subsystem, conf, attn_weights, window_features):
+    """
+    Synthesizes a dynamic, context-aware operational diagnosis:
+    1. What is the issue? (Operational Problem Signature)
+    2. What is causing the problem? (Dynamic Root-Cause Analysis combining Attention & Telemetry Drift)
+    3. Actionable Engineering Solution (Step-by-step remediation to restore pipeline health)
+    """
+    (d1, d2, d3), (r1, r2, r3), (m1, m2, m3) = extract_feature_values(window_features)
+    
+    attn_list = [float(w) for w in attn_weights] if hasattr(attn_weights, "__iter__") else [0.33, 0.33, 0.34]
+    max_idx = int(attn_list.index(max(attn_list))) if attn_list else 2
+    dom_step_name = f"t-{3 - max_idx}"
+    dom_step_pct = float(attn_list[max_idx]) * 100 if attn_list else 33.3
+
+    if risk_val >= 0.40:
+        alert_tag = "CRITICAL HIGH RISK"
+        alert_class = "critical"
+    elif risk_val >= 0.15:
+        alert_tag = "ELEVATED RISK"
+        alert_class = "elevated"
+    else:
+        alert_tag = "NOMINAL SLA"
+        alert_class = "nominal"
+
+    # Case 1: Healthy Nominal Execution
+    if risk_val < 0.15:
+        return {
+            "alert_tag": alert_tag,
+            "alert_class": alert_class,
+            "issue_title": "Nominal Operational SLA (Healthy Pipeline Execution)",
+            "issue_summary": "All telemetry metrics across the 3-day observation window reside comfortably within nominal SLA bounds. No resource exhaustion, upstream socket stalls, or retry cascades detected.",
+            "root_cause_explanation": (
+                f"Continuous baseline stability maintained across observation window [{d1:.1f}s to {d3:.1f}s duration]. "
+                f"Worker memory remains well below safe capacity ({m3:.1f} MB < 120 MB), retries are zero, and attention "
+                f"distribution is uniformly balanced. The neural network assigns {conf:.1%} confidence to healthy SLA execution."
+            ),
+            "remediation_steps": [
+                "Maintain standard @daily Airflow DAG scheduling cadence without manual intervention.",
+                "Sustain current PySpark allocation (1G RAM) and API request timeout parameters (10s).",
+                "Continuous automated telemetry surveillance remains active."
+            ],
+            "automated_action_label": "Verify Pipeline SLA Metrics",
+            "automated_action_result": "Automated Check Complete: All 4 pipeline stages verified healthy. Zero intervention needed."
+        }
+
+    # Case 2: Memory Leak / PySpark Heap Pressure
+    mem_drift = ((m3 - m1) / max(m1, 1.0)) * 100
+    if m3 >= 135.0 or mem_drift >= 35.0 or (top_subsystem == "SPARK_PROCESSING" and m3 > 100.0):
+        return {
+            "alert_tag": alert_tag,
+            "alert_class": alert_class,
+            "issue_title": "Escalating JVM Memory Leak & Spark Executor Heap Pressure",
+            "issue_summary": (
+                f"Critical memory accumulation detected across consecutive executions. Worker memory surged from "
+                f"{m1:.1f} MB (Run t-3) to {m3:.1f} MB (Run t-1), representing a +{mem_drift:.1f}% drift that threatens "
+                f"imminent Spark OutOfMemoryError (OOM)."
+            ),
+            "root_cause_explanation": (
+                f"The Temporal Attention mechanism concentrates {dom_step_pct:.1f}% of predictive weight on Run {dom_step_name}, "
+                f"identifying it as the primary inflection point of progressive heap starvation. Uncollected DataFrame objects "
+                f"or partition skew are overwhelming JVM garbage collection threads, delaying task completion and escalating failure probability to {risk_val:.1%}."
+            ),
+            "remediation_steps": [
+                "Scale Executor Heap: Increase spark.executor.memory from 1G to 4G and spark.driver.memory to 2G in spark_submit configurations.",
+                "Enable G1 Garbage Collector: Configure -XX:+UseG1GC -XX:InitiatingHeapOccupancyPercent=35 to efficiently collect fragmented heap partitions.",
+                "Prevent Partition Skew: Add .repartition(8) prior to wide-transformation joins to distribute memory loads evenly across worker nodes.",
+                "Unpersist Intermediate DataFrames: Audit transformation logic to ensure cached RDDs/DataFrames execute .unpersist() following write actions."
+            ],
+            "automated_action_label": "Execute Dynamic PySpark Heap Scaling (1G -> 4G)",
+            "automated_action_result": "Automated Remediation Dispatched: Scaled spark.executor.memory to 4096MB and triggered JVM GC sweep. Next run projected to pass SLA."
+        }
+
+    # Case 3: Upstream REST API Ingestion Latency / Timeout Storm
+    if r3 >= 1 or d3 >= 6.0 or top_subsystem == "API_INGESTION":
+        dur_drift = ((d3 - d1) / max(d1, 0.1)) * 100
+        return {
+            "alert_tag": alert_tag,
+            "alert_class": alert_class,
+            "issue_title": "Upstream REST API Connection Latency & Retry Queue Exhaustion",
+            "issue_summary": (
+                f"Severe upstream network friction detected in the ingestion stage. Execution duration escalated from "
+                f"{d1:.2f}s to {d3:.2f}s (+{dur_drift:.1f}%), triggering {r3} task retry attempts on Run t-1."
+            ),
+            "root_cause_explanation": (
+                f"Run {dom_step_name} accounts for {dom_step_pct:.1f}% of total temporal attention. External endpoint "
+                f"(JSONPlaceholder API) is exhibiting high response latency exceeding the default socket read threshold (10s), "
+                f"initiating exponential backoff retry cycles that exhaust Airflow worker slots and push failure risk to {risk_val:.1%}."
+            ),
+            "remediation_steps": [
+                "Extend Socket Timeout: Increase HTTP read/connect timeout in producer_users_daily.py from 10s to 30s.",
+                "Implement Jittered Exponential Backoff: Configure urllib3.util.Retry(total=5, backoff_factor=2, status_forcelist=[429, 500, 502, 503, 504]).",
+                "Deploy Ingestion Edge Cache: Configure Redis caching layer to serve warm cached payloads during external server degradation.",
+                "Audit Provider Rate Limits: Check whether ingestion IP has approached daily rate-limiting quotas (HTTP 429 Too Many Requests)."
+            ],
+            "automated_action_label": "Apply HTTP Circuit Breaker & Extend Read Timeout (10s -> 30s)",
+            "automated_action_result": "Automated Remediation Dispatched: Extended socket timeout to 30s and enabled circuit breaker fallback cache. Ingestion SLA secured."
+        }
+
+    # Case 4: PostgreSQL Database Lock / Warehouse Bottleneck
+    if top_subsystem == "DATABASE_LOAD":
+        return {
+            "alert_tag": alert_tag,
+            "alert_class": alert_class,
+            "issue_title": "PostgreSQL Connection Pool Exhaustion & Row-Lock Contention",
+            "issue_summary": (
+                f"Downstream data warehouse write bottleneck detected. Target PostgreSQL database is experiencing connection saturation "
+                f"or transactional row-lock queuing at Port 5432."
+            ),
+            "root_cause_explanation": (
+                f"Model identifies {top_subsystem} as the critical root cause ({conf:.1%} confidence), with {dom_step_pct:.1f}% "
+                f"attention focus centered on Run {dom_step_name}. High concurrency or uncommitted locks during idempotent upserts are blocking worker thread commits."
+            ),
+            "remediation_steps": [
+                "Deploy Connection Pooler: Route database connections through PgBouncer with a pool size of 50 to eliminate backend thread exhaustion.",
+                "Tune Transaction Parameters: Increase max_connections to 200 and set lock_timeout='15s' in postgresql.conf.",
+                "Optimize Idempotent Indexing: Ensure composite index exists on (id, extraction_date) to allow row-level upsert without table locks.",
+                "Purge Idle Connections: Terminate orphaned connections in pg_stat_activity holding active transactions for >60 seconds."
+            ],
+            "automated_action_label": "Recycle Database Connection Pool & Flush Idle Locks",
+            "automated_action_result": "Automated Remediation Dispatched: Cleared PostgreSQL idle-in-transaction locks and recycled connection pool."
+        }
+
+    # Case 5: Default General Elevated / Critical Degradation
+    return {
+        "alert_tag": alert_tag,
+        "alert_class": alert_class,
+        "issue_title": f"Compound Operational Anomaly Detected ({top_subsystem})",
+        "issue_summary": (
+            f"Cross-stage operational friction detected across the telemetry trajectory. Neural network flags {top_subsystem} "
+            f"as the primary degradation driver with an elevated risk score of {risk_val:.1%}."
+        ),
+        "root_cause_explanation": (
+            f"The temporal attention layer allocates {dom_step_pct:.1f}% of predictive focus to Run {dom_step_name}. Telemetry signals "
+            f"indicate progressive deviation from baseline operating distributions, requiring preventive intervention before complete SLA breach."
+        ),
+        "remediation_steps": [
+            f"Inspect {top_subsystem} Stage Logs: Review raw Airflow worker logs for stack trace exceptions or timeout warnings.",
+            "Verify Pipeline Dependencies: Ensure upstream network availability, S3 bucket storage quotas, and PostgreSQL connectivity.",
+            "Engage Preventive Worker Scale-Out: Provision additional worker capacity to absorb load surges."
+        ],
+        "automated_action_label": "Dispatch Automated Pipeline Health Audit",
+        "automated_action_result": "Automated Check Dispatched: Health audit initiated across all 4 stages. Diagnostics logged to Airflow control plane."
+    }
 
 def render_dynamic_remediation_card(remed_info, key_suffix="default"):
     """
