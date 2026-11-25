@@ -2,7 +2,7 @@
 app.py — Production Streamlit Dashboard
 Data Pipeline Failure Prediction System (ANNA Course 2307411T - Track 2: Sequential Models)
 
-Group 12 (Equal Contributors):
+Group 12:
  - Ayush Nagras     (PRN: 202301070001)
  - Siddhesh Bhivare (PRN: 202301070005)
  - Om Nikam         (PRN: 202301070006)
@@ -15,7 +15,6 @@ Features:
 4. Primary/Foreign Key Relational Log Viewer (pipeline_telemetry.csv -> pipeline_logs.json)
 5. Interactive "What-If" Scenario Simulator with live degradation sliders & presets
 6. Real-time Airflow ETL Pipeline trigger & data quality verification
-7. Experimental Ablation & Optimization Charts (5 Publication Figures)
 """
 
 import os
@@ -40,7 +39,6 @@ from src.data.log_analyzer import get_run_analysis_by_log_id, load_logs_database
 # -----------------------------------------------------------------------------
 st.set_page_config(
     page_title="Data Pipeline Failure Prediction | Group 12",
-    page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -133,23 +131,23 @@ except Exception as e:
 # Sidebar: Metadata & Quick Controls
 # -----------------------------------------------------------------------------
 with st.sidebar:
-    st.title("⚡ Project Metadata")
+    st.title("Project Metadata")
     st.markdown("**Course:** 2307411T - ANNA")
     st.markdown("**Track 2:** Sequential Models")
     st.markdown("**Assessment:** End-Semester Exam (50M)")
     st.divider()
     
-    st.subheader("👥 Group 12 (Equal Contributors)")
+    st.subheader("Group 12")
     st.markdown("• **Ayush Nagras** (202301070001)")
     st.markdown("• **Siddhesh Bhivare** (202301070005)")
     st.markdown("• **Om Nikam** (202301070006)")
     st.markdown("• **Vaibhav Tajane** (202301070008)")
     st.divider()
     
-    st.subheader("⚙️ System Status")
-    st.success("✓ Attention-GRU: LOADED")
-    st.info(f"✓ Historical Runs: {len(df_telem)}")
-    st.info(f"✓ Airflow Task Logs: {len(logs_dict)}")
+    st.subheader("System Status")
+    st.success("Attention-GRU: LOADED")
+    st.info(f"Historical Runs: {len(df_telem)}")
+    st.info(f"Airflow Task Logs: {len(logs_dict)}")
 
 # -----------------------------------------------------------------------------
 # Header
@@ -158,14 +156,12 @@ st.markdown("<div class='main-header'>Data Pipeline Failure Prediction System</d
 st.markdown("<div class='sub-header'>Pre-Failure Early Warning & Root Cause Attribution using Dual-Head Temporal Attention GRUs</div>", unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# Tabs
+# Tabs (3 Active Sections)
 # -----------------------------------------------------------------------------
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
-    "🚨 Live Risk Monitor",
-    "🧪 What-If Simulator",
-    "📊 Model Ablation & Figures",
-    "🛠️ Airflow Pipeline Inspector",
-    "🎓 System Architecture & Viva"
+tab1, tab2, tab3 = st.tabs([
+    "Live Risk Monitor",
+    "What-If Simulator",
+    "Airflow Pipeline Inspector"
 ])
 
 # =============================================================================
@@ -373,47 +369,9 @@ with tab2:
         st.bar_chart(s_df, x="Step", y="Weight (%)", use_container_width=True)
 
 # =============================================================================
-# TAB 3: Model Ablation & Figures (CO4)
+# TAB 3: Airflow Pipeline Inspector
 # =============================================================================
 with tab3:
-    st.subheader("Experimental Optimization & Ablation Study (CO4)")
-    st.markdown("Visual verification of all 5 publication-ready evaluation charts generated in Week 3.")
-    
-    fig_dir = os.path.join(PROJECT_ROOT, "reports", "figures")
-    
-    col_f1, col_f2 = st.columns(2)
-    with col_f1:
-        f1_path = os.path.join(fig_dir, "1_architecture_comparison_metrics.png")
-        if os.path.exists(f1_path):
-            st.image(f1_path, caption="Figure 1: Architectural Comparison across 5 Models")
-        f3_path = os.path.join(fig_dir, "3_training_convergence_curves.png")
-        if os.path.exists(f3_path):
-            st.image(f3_path, caption="Figure 3: Training & Validation Convergence Trajectories")
-            
-    with col_f2:
-        f2_path = os.path.join(fig_dir, "2_window_size_ablation.png")
-        if os.path.exists(f2_path):
-            st.image(f2_path, caption="Figure 2: Impact of Window Size T on F1 vs Latency")
-        f4_path = os.path.join(fig_dir, "4_roc_curves.png")
-        if os.path.exists(f4_path):
-            st.image(f4_path, caption="Figure 4: Receiver Operating Characteristic (ROC-AUC)")
-            
-    st.divider()
-    f5_path = os.path.join(fig_dir, "5_confusion_matrix_subsystems.png")
-    if os.path.exists(f5_path):
-        st.image(f5_path, caption="Figure 5: 5x5 Subsystem Root Cause Confusion Matrix", width=750)
-        
-    # Tabular Results
-    st.markdown("### Hyperparameter Grid Search Logs")
-    csv_results = os.path.join(PROJECT_ROOT, "reports", "hyperparameter_sweep_results.csv")
-    if os.path.exists(csv_results):
-        df_sw = pd.read_csv(csv_results)
-        st.dataframe(df_sw, use_container_width=True)
-
-# =============================================================================
-# TAB 4: Airflow Pipeline Inspector
-# =============================================================================
-with tab4:
     st.subheader("Data Engineering Pipeline Execution Flow")
     st.markdown("Live verification of the 4-stage Apache Airflow Producer-Consumer DAG architecture.")
     
@@ -426,13 +384,13 @@ with tab4:
     ```
     """)
     
-    if st.button("▶️ Execute Live Pipeline ETL Verification", type="primary"):
+    if st.button("Execute Live Pipeline ETL Verification", type="primary"):
         import requests
         st.info("Triggering Producer DAG extraction...")
         try:
             resp = requests.get("https://jsonplaceholder.typicode.com/users", timeout=10)
             records = resp.json()
-            st.success(f"✓ Producer DAG extracted {len(records)} user records from REST endpoint.")
+            st.success(f"Producer DAG extracted {len(records)} user records from REST endpoint.")
             
             df_users = pd.DataFrame(records)
             st.dataframe(df_users[['id', 'name', 'email', 'phone', 'website']].head(5), use_container_width=True)
@@ -440,38 +398,9 @@ with tab4:
             # Consumer check
             null_count = df_users['id'].isna().sum() + df_users['email'].isna().sum()
             if null_count == 0:
-                st.success("✓ PySpark Consumer Check: 0 null identity values found. Data Quality PASSED.")
-                st.success("✓ Staged clean partition ready for PostgreSQL idempotent commit.")
+                st.success("PySpark Consumer Check: 0 null identity values found. Data Quality PASSED.")
+                st.success("Staged clean partition ready for PostgreSQL idempotent commit.")
             else:
-                st.error("✗ Data Quality Check FAILED.")
+                st.error("Data Quality Check FAILED.")
         except Exception as err:
             st.error(f"ETL Execution Error: {err}")
-
-# =============================================================================
-# TAB 5: System Architecture & Viva Defense
-# =============================================================================
-with tab5:
-    st.subheader("Viva Defense Guide & Theoretical Formulations")
-    
-    st.markdown(r"""
-    ### 1. Mathematical Grounding (CO3)
-    Given hidden state vectors $H = [h_1, h_2, \dots, h_T] \in \mathbb{R}^{T \times d_h}$ from recurrent GRU:
-    
-    1. **Additive Alignment Energy:**
-       $$e_t = v_a^\top \tanh(W_a h_t + b_a)$$
-    2. **Temporal Attention Weights (Softmax):**
-       $$\alpha_t = \frac{\exp(e_t)}{\sum_{j=1}^T \exp(e_j)} \quad \text{where } \sum_{t=1}^T \alpha_t = 1.0$$
-    3. **Context Vector:**
-       $$c = \sum_{t=1}^T \alpha_t h_t$$
-    4. **Dual-Head Multi-Task Loss:**
-       $$\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{BCE}}(\hat{y}_{\text{risk}}, y) + 0.5 \cdot \mathcal{L}_{\text{CE}}(\hat{y}_{\text{cause}}, y_{\text{stage}})$$
-       
-    ---
-    ### 2. Group Contribution Matrix (All 4 Equal Contributors)
-    | Group Member | PRN | Core Responsibilities & Viva Mastery |
-    | :--- | :--- | :--- |
-    | **Ayush Nagras** | 202301070001 | Airflow Producer/Consumer DAGs, Relational `log_id` schema, Streamlit UI |
-    | **Siddhesh Bhivare**| 202301070005 | Temporal Attention Layer, Additive Bahdanau Math, Context Fusion |
-    | **Om Nikam** | 202301070006 | Dual-Head Multi-Task Loss formulation, Subsystem Root-Cause Head |
-    | **Vaibhav Tajane** | 202301070008 | Hyperparameter Grid Search, ROC-AUC Profiling, Optimization Curves |
-    """)
