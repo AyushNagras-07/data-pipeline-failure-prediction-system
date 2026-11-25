@@ -1530,3 +1530,143 @@ with tab3:
                 • <strong>Connection Management:</strong> Airflow PostgresHook
             </div>
             """, unsafe_allow_html=True)
+
+    # -------------------------------------------------------------------------
+    # 3. Medallion Architecture Lineage (Bronze -> Silver -> Gold)
+    # -------------------------------------------------------------------------
+    st.divider()
+    st.markdown("<div class='section-title'>3. Medallion Architecture Lineage (Bronze &rarr; Silver &rarr; Gold)</div>", unsafe_allow_html=True)
+    st.markdown("Modern Data Lakehouse design pattern: Inspect how raw external payloads transform through progressive refinement stages into analytics-ready relational tables.")
+
+    col_med_sel, col_med_view = st.columns([1, 2])
+    
+    with col_med_sel:
+        med_layer = st.radio(
+            "Select Medallion Layer to Inspect:",
+            options=[
+                "Bronze Layer (Raw Ingestion Vault)",
+                "Silver Layer (PySpark Cleansed Parquet)",
+                "Gold Layer (Curated PostgreSQL Warehouse)"
+            ],
+            index=0
+        )
+        
+    with col_med_view:
+        if "Bronze" in med_layer:
+            st.markdown("""
+            <div class='diagnostic-panel'>
+                <strong>Bronze Layer (Raw Storage Vault)</strong><br>
+                • <strong>Storage Target:</strong> <code>s3a://ayush-consumer-producer/bronze/YYYY-MM-DD.json</code><br>
+                • <strong>Data Format:</strong> Immutable raw JSON array directly from external source.<br>
+                • <strong>Governance Principle:</strong> Zero data loss; preserves source structure for auditing.<br>
+                <div style='margin-top: 10px;'>
+                    <strong>Sample Ingested Record (Raw JSON):</strong>
+                    <pre style='background: #0B1120; color: #E2E8F0; padding: 10px; border-radius: 6px; font-size: 0.78rem;'>{
+  "id": 1,
+  "name": "Leanne Graham",
+  "username": "Bret",
+  "email": "Sincere@april.biz",
+  "address": { "city": "Gwenborough", "zipcode": "92998-3874" }
+}</pre>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+        elif "Silver" in med_layer:
+            st.markdown("""
+            <div class='diagnostic-panel'>
+                <strong>Silver Layer (Cleansed & Enforced Parquet)</strong><br>
+                • <strong>Storage Target:</strong> <code>s3a://ayush-consumer-producer/silver/users_clean.parquet</code><br>
+                • <strong>Processing Engine:</strong> PySpark <code>StructType</code> Schema Enforcer<br>
+                • <strong>Transformations:</strong> Flattened nested objects, stripped metadata, deduplicated IDs, email regex validated.<br>
+                <div style='margin-top: 10px;'>
+                    <strong>Enforced Schema & Flattened Parquet Record:</strong>
+                    <pre style='background: #0B1120; color: #E2E8F0; padding: 10px; border-radius: 6px; font-size: 0.78rem;'>StructType([
+  StructField("id", IntegerType(), False),
+  StructField("name", StringType(), False),
+  StructField("email", StringType(), False),
+  StructField("city", StringType(), True),
+  StructField("_ingested_at", TimestampType(), False)
+])
+---
+[Record: id=1, name="Leanne Graham", email="Sincere@april.biz", city="Gwenborough", _ingested_at="2026-11-25 06:00:00"]</pre>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown("""
+            <div class='diagnostic-panel'>
+                <strong>Gold Layer (Curated PostgreSQL Data Warehouse)</strong><br>
+                • <strong>Storage Target:</strong> <code>postgresql://warehouse:5432/analytics.fact_users_daily</code><br>
+                • <strong>Loading Strategy:</strong> Idempotent Upsert (<code>ON CONFLICT DO UPDATE</code>)<br>
+                • <strong>Optimization:</strong> B-Tree indices on primary key & date partitions for sub-second BI reporting.<br>
+                <div style='margin-top: 10px;'>
+                    <strong>Final Relational Table Representation:</strong>
+                    <pre style='background: #0B1120; color: #E2E8F0; padding: 10px; border-radius: 6px; font-size: 0.78rem;'>SELECT id, name, email, city, extraction_date 
+FROM analytics.fact_users_daily 
+WHERE extraction_date = '2026-11-25';
+
++----+---------------+-------------------+-------------+-----------------+
+| id | name          | email             | city        | extraction_date |
++----+---------------+-------------------+-------------+-----------------+
+|  1 | Leanne Graham | Sincere@april.biz | Gwenborough | 2026-11-25      |
++----+---------------+-------------------+-------------+-----------------+</pre>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+    # -------------------------------------------------------------------------
+    # 4. Live Data Quality Contract & Assertions Gate
+    # -------------------------------------------------------------------------
+    st.markdown("<div class='section-title'>4. Automated Data Quality Gate & Contract Specifications</div>", unsafe_allow_html=True)
+    st.markdown("PySpark automated data contract assertions evaluated prior to warehouse load:")
+
+    is_corrupt_scenario = "PySpark Catches Null" in sim_scenario
+    
+    dq_col1, dq_col2 = st.columns([1.5, 1])
+    
+    with dq_col1:
+        if is_corrupt_scenario:
+            dq_rows = [
+                {"Contract Rule": "1. Primary Key Non-Null Assertion", "Target Column": "id", "Validation Engine": "PySpark IS NOT NULL", "Contract Status": "FAILED (NULL DETECTED)"},
+                {"Contract Rule": "2. RFC 5322 Email Regex Match", "Target Column": "email", "Validation Engine": "PySpark Regex r'^[\\w\\.-]+@...'", "Contract Status": "PASSED"},
+                {"Contract Rule": "3. Primary Key Uniqueness Check", "Target Column": "id", "Validation Engine": "PySpark .dropDuplicates(['id'])", "Contract Status": "PASSED"},
+                {"Contract Rule": "4. Strict StructType Schema Casting", "Target Column": "id, name, email", "Validation Engine": "PySpark StructType Enforcer", "Contract Status": "PASSED"},
+                {"Contract Rule": "5. Batch Volume SLA Bounds", "Target Column": "COUNT(*)", "Validation Engine": "PySpark Row Count (1 <= N <= 1000)", "Contract Status": "PASSED"}
+            ]
+        else:
+            dq_rows = [
+                {"Contract Rule": "1. Primary Key Non-Null Assertion", "Target Column": "id", "Validation Engine": "PySpark IS NOT NULL", "Contract Status": "PASSED (0 NULLS)"},
+                {"Contract Rule": "2. RFC 5322 Email Regex Match", "Target Column": "email", "Validation Engine": "PySpark Regex r'^[\\w\\.-]+@...'", "Contract Status": "PASSED (100% VALID)"},
+                {"Contract Rule": "3. Primary Key Uniqueness Check", "Target Column": "id", "Validation Engine": "PySpark .dropDuplicates(['id'])", "Contract Status": "PASSED (UNIQUE)"},
+                {"Contract Rule": "4. Strict StructType Schema Casting", "Target Column": "id, name, email", "Validation Engine": "PySpark StructType Enforcer", "Contract Status": "PASSED (CONFORMANT)"},
+                {"Contract Rule": "5. Batch Volume SLA Bounds", "Target Column": "COUNT(*)", "Validation Engine": "PySpark Row Count (1 <= N <= 1000)", "Contract Status": "PASSED (10 ROWS)"}
+            ]
+            
+        dq_df = pd.DataFrame(dq_rows)
+        st.dataframe(dq_df, hide_index=True)
+        
+    with dq_col2:
+        if is_corrupt_scenario:
+            st.markdown("""
+            <div class='remediation-card remediation-critical' style='margin-top: 0;'>
+                <div style='font-size: 0.75rem; font-weight: 700; color: #DC2626; text-transform: uppercase;'>Quality Gate Interlock Active</div>
+                <div style='font-size: 0.95rem; font-weight: 700; color: #991B1B; margin: 4px 0;'>Contract Breach: Primary Key Null</div>
+                <div style='font-size: 0.82rem; color: #334155; line-height: 1.45;'>
+                    • <strong>Quarantine Action:</strong> Corrupted record routed to Dead-Letter Queue (DLQ) at <code>s3a://lake-quarantine/dlq/</code>.<br>
+                    • <strong>Warehouse Protection:</strong> PostgreSQL write blocked to prevent data corruption.<br>
+                    • <strong>Model Root Cause:</strong> Correctly attributed to <code>SPARK_PROCESSING</code>.
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown("""
+            <div class='remediation-card remediation-nominal' style='margin-top: 0;'>
+                <div style='font-size: 0.75rem; font-weight: 700; color: #16A34A; text-transform: uppercase;'>Quality Gate Verification Passed</div>
+                <div style='font-size: 0.95rem; font-weight: 700; color: #166534; margin: 4px 0;'>100% Data Contract Compliance</div>
+                <div style='font-size: 0.82rem; color: #334155; line-height: 1.45;'>
+                    • <strong>Zero Defect Validation:</strong> All 5 assertions passed on incoming batch.<br>
+                    • <strong>Safe Warehouse Load:</strong> Batch authorized for idempotent load into PostgreSQL.<br>
+                    • <strong>Pipeline Health:</strong> Nominal SLA maintained.
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
