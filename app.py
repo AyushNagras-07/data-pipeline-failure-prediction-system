@@ -329,6 +329,79 @@ st.markdown("""
         100% { transform: translateX(35px); opacity: 0; }
     }
 
+    /* AI Radar Watchdog Sentry */
+    .radar-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: rgba(15, 23, 42, 0.95);
+        border: 1.5px solid #38BDF8;
+        border-radius: 10px;
+        padding: 12px 18px;
+        margin-bottom: 16px;
+        box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+    }
+    .radar-beacon {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background-color: #10B981;
+        box-shadow: 0 0 10px #10B981;
+        animation: radar-pulse 1.8s infinite;
+        display: inline-block;
+        margin-right: 8px;
+    }
+    .radar-beacon-danger {
+        background-color: #EF4444 !important;
+        box-shadow: 0 0 14px #EF4444 !important;
+        animation: radar-pulse-danger 1.1s infinite !important;
+    }
+    .radar-beacon-warn {
+        background-color: #F59E0B !important;
+        box-shadow: 0 0 12px #F59E0B !important;
+        animation: radar-pulse-warn 1.4s infinite !important;
+    }
+    @keyframes radar-pulse {
+        0%, 100% { transform: scale(1); opacity: 0.8; }
+        50% { transform: scale(1.4); opacity: 1; }
+    }
+    @keyframes radar-pulse-danger {
+        0%, 100% { transform: scale(1); opacity: 0.8; }
+        50% { transform: scale(1.6); opacity: 1; }
+    }
+    @keyframes radar-pulse-warn {
+        0%, 100% { transform: scale(1); opacity: 0.8; }
+        50% { transform: scale(1.3); opacity: 1; }
+    }
+
+    /* Dead-Letter Queue (DLQ) Diverter */
+    .dlq-box {
+        background: rgba(239, 68, 68, 0.15);
+        border: 1.5px dashed #EF4444;
+        border-radius: 8px;
+        padding: 8px 10px;
+        margin-top: 10px;
+        text-align: center;
+        font-size: 0.74rem;
+        font-weight: 600;
+        color: #FCA5A5;
+        animation: dlq-glow 1.8s infinite;
+    }
+    @keyframes dlq-glow {
+        0%, 100% { box-shadow: 0 0 4px rgba(239, 68, 68, 0.3); }
+        50% { box-shadow: 0 0 14px rgba(239, 68, 68, 0.75); }
+    }
+
+    /* Gauge Card */
+    .gauge-card {
+        background: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 8px;
+        padding: 12px 14px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        text-align: center;
+    }
+
     /* Dynamic Remediation & Problem Diagnosis Card */
     .remediation-card {
         background-color: #FFFFFF;
@@ -1316,55 +1389,103 @@ with tab2:
 with tab3:
     st.subheader("Data Engineering Pipeline Architecture & Live Execution")
     
-
+    st.markdown("Watch how data moves across the pipeline, how corrupt records get filtered into quarantine, and how the **Attention-GRU AI Sentry** predicts pipeline crashes before they occur.")
     
-    # Interactive Operational Simulator Picker
-    st.markdown("<div class='section-title'>1. Interactive Pipeline Execution Flow (Live Animation)</div>", unsafe_allow_html=True)
-    st.markdown("Select an operational scenario to watch the live data flow across all 4 stages in real time:")
-    
+    # Visual Operational Scenario Selector
     sim_scenario = st.selectbox(
-        "Choose Operational Scenario to Simulate:",
+        "Choose Operational Scenario to Simulate Live:",
         options=[
             "Nominal Operational Flow (Healthy End-to-End Execution)",
-            "Simulate Upstream Failure: REST API Returns 500 Internal Error",
-            "Simulate Corrupted Data: PySpark Catches Null Identity Values",
-            "Simulate Database Lock: PostgreSQL Connection Pool Exhaustion"
+            "Incident A: Upstream REST API Failure (HTTP 500 Server Error)",
+            "Incident B: Corrupted Null Records Caught by PySpark (Dead-Letter Queue)",
+            "Incident C: Spark Executor Memory Saturation (AI Early Warning at t-3)"
         ]
     )
     
-    # Configure animated node classes based on scenario
+    # Dynamic properties based on scenario
     if "Nominal" in sim_scenario:
+        radar_tag = "RADAR: NOMINAL SLA HEALTHY"
+        radar_cls = "radar-beacon"
+        radar_desc = "AI Sentry: Continuous Telemetry Nominal | Predicted Risk: 0.1% | SLA Met (1.2s)"
         n1_cls, n2_cls, n3_cls, n4_cls = "node-active-green", "node-active-green", "node-active-green", "node-active-green"
         p1_cls, p2_cls, p3_cls = "pipe-active-green", "pipe-active-green", "pipe-active-green"
         s1_tag, s2_tag, s3_tag, s4_tag = "ACTIVE (200 OK)", "STAGED (S3 PUT)", "AUDITED (0 NULLS)", "COMMITTED (10 ROWS)"
-        hud_msg = "Pipeline Status: End-to-End Execution Passed within SLA (1.2 seconds)."
+        show_dlq = False
+        hud_msg = "Pipeline Status: End-to-End Execution Passed within SLA (1.2s). All 10 user records committed to PostgreSQL."
         hud_type = "success"
-    elif "API Returns 500" in sim_scenario:
+        lat_val, lat_color = "1.8s", "#10B981"
+        dq_val, dq_color = "100%", "#10B981"
+        mem_val, mem_color = "84 MB / 250 MB", "#10B981"
+        risk_val_str, risk_badge = "0.1%", "<span class='badge-nominal'>NOMINAL SLA</span>"
+        
+    elif "Incident A" in sim_scenario:
+        radar_tag = "RADAR: UPSTREAM INGESTION CRASH"
+        radar_cls = "radar-beacon radar-beacon-danger"
+        radar_desc = "AI Sentry: Ingestion Crash Detected | Predicted Risk: 52.4% | Root Cause: API_INGESTION"
         n1_cls, n2_cls, n3_cls, n4_cls = "node-active-danger", "node-skipped", "node-skipped", "node-skipped"
         p1_cls, p2_cls, p3_cls = "pipe-blocked", "pipe-connector", "pipe-connector"
         s1_tag, s2_tag, s3_tag, s4_tag = "FAILED (HTTP 500)", "SKIPPED", "SKIPPED", "SKIPPED"
-        hud_msg = "Pipeline Blocked at Stage 1: Upstream server crash detected. Model flags API_INGESTION as root cause."
+        show_dlq = False
+        hud_msg = "Pipeline Blocked at Stage 1: External API down. Circuit breaker engaged; downstream stages safely skipped."
         hud_type = "error"
-    elif "PySpark Catches Null" in sim_scenario:
-        n1_cls, n2_cls, n3_cls, n4_cls = "node-active-green", "node-active-green", "node-active-warn", "node-skipped"
-        p1_cls, p2_cls, p3_cls = "pipe-active-green", "pipe-active-green", "pipe-blocked"
-        s1_tag, s2_tag, s3_tag, s4_tag = "PASSED (200 OK)", "STAGED (RAW JSON)", "FAILED (NULL DETECTED)", "BLOCKED (SAFETY)"
-        hud_msg = "Quality Gate Interlock Active: Corrupt records quarantined to prevent database pollution. Root cause: SPARK_PROCESSING."
+        lat_val, lat_color = "14.5s (Timeout)", "#EF4444"
+        dq_val, dq_color = "0% (No Payload)", "#94A3B8"
+        mem_val, mem_color = "50 MB (Idle)", "#94A3B8"
+        risk_val_str, risk_badge = "52.4%", "<span class='badge-critical'>CRITICAL RISK</span>"
+        
+    elif "Incident B" in sim_scenario:
+        radar_tag = "RADAR: DATA QUALITY ANOMALY"
+        radar_cls = "radar-beacon radar-beacon-warn"
+        radar_desc = "AI Sentry: Quality Breach Quarantined | Corrupt Nulls Diverted to DLQ | Safe Load"
+        n1_cls, n2_cls, n3_cls, n4_cls = "node-active-green", "node-active-green", "node-active-warn", "node-active-green"
+        p1_cls, p2_cls, p3_cls = "pipe-active-green", "pipe-active-green", "pipe-active-green"
+        s1_tag, s2_tag, s3_tag, s4_tag = "PASSED (200 OK)", "STAGED (RAW JSON)", "FILTERED (NULL CAUGHT)", "CLEAN COMMITTED"
+        show_dlq = True
+        hud_msg = "Quality Gate Active: Corrupt records diverted to Dead-Letter Queue (DLQ). Clean records safely committed to PostgreSQL."
         hud_type = "warning"
-    else:
-        n1_cls, n2_cls, n3_cls, n4_cls = "node-active-green", "node-active-green", "node-active-green", "node-active-danger"
+        lat_val, lat_color = "2.1s", "#10B981"
+        dq_val, dq_color = "80% (2 Corrupt Isolated)", "#F59E0B"
+        mem_val, mem_color = "95 MB / 250 MB", "#10B981"
+        risk_val_str, risk_badge = "28.9%", "<span class='badge-elevated'>ELEVATED RISK</span>"
+        
+    else: # Incident C: Memory Leak
+        radar_tag = "RADAR: CRITICAL MEMORY LEAK"
+        radar_cls = "radar-beacon radar-beacon-danger"
+        radar_desc = "AI Sentry: Imminent OOM Predicted | Pre-Failure Warning Detected at Run t-3 (Attention: 54.7%)"
+        n1_cls, n2_cls, n3_cls, n4_cls = "node-active-green", "node-active-green", "node-active-danger", "node-skipped"
         p1_cls, p2_cls, p3_cls = "pipe-active-green", "pipe-active-green", "pipe-blocked"
-        s1_tag, s2_tag, s3_tag, s4_tag = "PASSED (200 OK)", "STAGED (RAW JSON)", "AUDITED (0 NULLS)", "FAILED (POOL FULL)"
-        hud_msg = "Warehouse Connection Failure: max_connections=100 reached. Attention-GRU attributes POSTGRES_DATABASE."
+        s1_tag, s2_tag, s3_tag, s4_tag = "PASSED (200 OK)", "STAGED (RAW JSON)", "OOM RISK (98% HEAP)", "BLOCKED (SAFETY)"
+        show_dlq = False
+        hud_msg = "Imminent Crash Warning: Spark heap saturation (245MB/250MB). Model flags CRITICAL HIGH RISK before run completes."
         hud_type = "error"
+        lat_val, lat_color = "7.8s (GC Stall)", "#F59E0B"
+        dq_val, dq_color = "100%", "#10B981"
+        mem_val, mem_color = "245 MB / 250 MB (98%)", "#EF4444"
+        risk_val_str, risk_badge = "51.8%", "<span class='badge-critical'>CRITICAL RISK</span>"
 
-    # Render Animated Visual Pipeline Canvas
+    dlq_html = """
+    <div class='dlq-box'>
+        QUARANTINE DLQ ACTIVATED: Bad Null Records Dropped Here (Database Protected)
+    </div>
+    """ if show_dlq else ""
+
+    # Render Visual Canvas with AI Radar Sentry on top
     st.markdown(f"""
     <div class='pipeline-canvas'>
-        <div style='display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;'>
-            <span style='font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #94A3B8;'>Airflow DAG Orchestration Channel</span>
-            <span style='font-size: 0.78rem; font-family: "JetBrains Mono", monospace; color: #38BDF8;'>Schedule: @daily | Zero Lookahead Isolation</span>
+        <!-- AI Radar Watchdog Sentry -->
+        <div class='radar-container'>
+            <div style='display: flex; align-items: center;'>
+                <span class='{radar_cls}'></span>
+                <span style='font-size: 0.82rem; font-weight: 700; color: #F8FAFC; letter-spacing: 0.05em;'>{radar_tag}</span>
+            </div>
+            <div style='font-size: 0.80rem; color: #94A3B8;'>{radar_desc}</div>
         </div>
+        
+        <div style='display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;'>
+            <span style='font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #94A3B8;'>Airflow DAG Orchestration Channel</span>
+            <span style='font-size: 0.76rem; font-family: "JetBrains Mono", monospace; color: #38BDF8;'>Schedule: @daily | Zero Lookahead Isolation</span>
+        </div>
+        
         <div class='pipeline-nodes-wrapper'>
             <!-- Node 1 -->
             <div class='stage-node-box {n1_cls}'>
@@ -1390,6 +1511,7 @@ with tab3:
                 <div style='font-size: 0.90rem; font-weight: 700; margin: 4px 0;'>PySpark Quality Audit</div>
                 <div style='font-size: 0.72rem; color: #CBD5E1;'>Distributed StructType</div>
                 <div style='margin-top: 8px; font-size: 0.75rem; font-weight: 600;'>{s3_tag}</div>
+                {dlq_html}
             </div>
             <!-- Pipe 3-4 -->
             <div class='pipe-connector {p3_cls}'></div>
@@ -1403,7 +1525,7 @@ with tab3:
         </div>
     </div>
     """, unsafe_allow_html=True)
-    
+
     if hud_type == "success":
         st.success(hud_msg)
     elif hud_type == "warning":
@@ -1411,122 +1533,86 @@ with tab3:
     else:
         st.error(hud_msg)
 
-    # 4 Pipeline Stages Deep-Dive
-    st.markdown("<div class='section-title'>2. The 4 Pipeline Stages (Click to Explore Architecture Details)</div>", unsafe_allow_html=True)
-    
-    selected_stage = st.radio(
-        "Select Pipeline Stage to Inspect Subsystem Details:",
-        options=[
-            "Stage 1: Upstream REST API Ingestion",
-            "Stage 2: Amazon S3 Cloud Lake Staging",
-            "Stage 3: PySpark Distributed Quality Audit",
-            "Stage 4: PostgreSQL Idempotent Load"
-        ],
-        horizontal=True
-    )
-    
-    col_st1, col_st2 = st.columns([1.2, 1])
-    
-    if "Stage 1" in selected_stage:
-        with col_st1:
-            st.markdown(f"""
-            <div class='step-card'>
-                <div class='step-card-num'>Pipeline Stage 1 of 4</div>
-                <div class='step-card-title'>Upstream REST API Ingestion (Producer DAG)</div>
-                <div class='step-card-desc'>
-                    • <strong>Plain English Role:</strong> Connects to external servers over the internet to extract daily user records.<br>
-                    • <strong>Production DAG:</strong> <code>producer_users_daily.py</code><br>
-                    • <strong>Real Source Endpoint:</strong> <code>https://jsonplaceholder.typicode.com/users</code><br>
-                    • <strong>Protocol:</strong> HTTP GET with 10-second connection timeout.<br>
-                    • <strong>Failure Modes Detected by our Model:</strong> API Server Down (HTTP 500), Rate Limit Quota Reached (HTTP 429), or Network Gateway Timeout (ReadTimeout).
-                </div>
+    # Live Visual Health & Telemetry Gauges (Replaces dense text)
+    st.markdown("<div class='section-title'>Live Operational Telemetry Gauges</div>", unsafe_allow_html=True)
+    g_col1, g_col2, g_col3, g_col4 = st.columns(4)
+    with g_col1:
+        st.markdown(f"""
+        <div class='gauge-card'>
+            <div style='font-size: 0.75rem; font-weight: 700; color: #64748B; text-transform: uppercase;'>Ingestion Latency</div>
+            <div class='gauge-val' style='color: {lat_color};'>{lat_val}</div>
+            <div style='margin-top: 6px; font-size: 0.75rem; color: #64748B;'>HTTP Socket Timer</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with g_col2:
+        st.markdown(f"""
+        <div class='gauge-card'>
+            <div style='font-size: 0.75rem; font-weight: 700; color: #64748B; text-transform: uppercase;'>Data Quality Score</div>
+            <div class='gauge-val' style='color: {dq_color};'>{dq_val}</div>
+            <div style='margin-top: 6px; font-size: 0.75rem; color: #64748B;'>Zero-Defect Gate</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with g_col3:
+        st.markdown(f"""
+        <div class='gauge-card'>
+            <div style='font-size: 0.75rem; font-weight: 700; color: #64748B; text-transform: uppercase;'>Spark JVM Heap RAM</div>
+            <div class='gauge-val' style='color: {mem_color};'>{mem_val}</div>
+            <div style='margin-top: 6px; font-size: 0.75rem; color: #64748B;'>Worker Saturation</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with g_col4:
+        st.markdown(f"""
+        <div class='gauge-card'>
+            <div style='font-size: 0.75rem; font-weight: 700; color: #64748B; text-transform: uppercase;'>AI Predicted Failure Risk</div>
+            <div class='gauge-val'>{risk_val_str}</div>
+            <div style='margin-top: 6px;'>{risk_badge}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # 4-Step Plain English Visual Summary (Only 1 short sentence per step, Zero walls of text!)
+    st.markdown("<div class='section-title'>How This System Works (Plain-English Visual Summary)</div>", unsafe_allow_html=True)
+    f_col1, f_col2, f_col3, f_col4 = st.columns(4)
+    with f_col1:
+        st.markdown("""
+        <div class='step-card'>
+            <div class='step-card-num'>Step 1</div>
+            <div class='step-card-title'>REST Ingestion</div>
+            <div class='step-card-desc'>
+                Airflow Producer polls external APIs daily to extract new user records.
             </div>
-            """, unsafe_allow_html=True)
-        with col_st2:
-            st.markdown("""
-            <div class='diagnostic-panel'>
-                <strong>Sample Ingested JSON Payload:</strong><br>
-                <code style='font-size: 0.78rem;'>
-                &#123;<br>
-                &nbsp;&nbsp;"id": 1,<br>
-                &nbsp;&nbsp;"name": "Leanne Graham",<br>
-                &nbsp;&nbsp;"email": "Sincere@april.biz"<br>
-                &#125;
-                </code>
+            <div style='margin-top: 8px;'><span class='badge-stage'>HTTP GET :80/443</span></div>
+        </div>
+        """, unsafe_allow_html=True)
+    with f_col2:
+        st.markdown("""
+        <div class='step-card'>
+            <div class='step-card-num'>Step 2</div>
+            <div class='step-card-title'>Cloud S3 Lake</div>
+            <div class='step-card-desc'>
+                Raw JSON files are stored immutably in S3 partitions as an audit vault.
             </div>
-            """, unsafe_allow_html=True)
-            
-    elif "Stage 2" in selected_stage:
-        with col_st1:
-            st.markdown(f"""
-            <div class='step-card'>
-                <div class='step-card-num'>Pipeline Stage 2 of 4</div>
-                <div class='step-card-title'>Cloud Data Lake Staging (Amazon S3)</div>
-                <div class='step-card-desc'>
-                    • <strong>Plain English Role:</strong> Acts as an immutable storage vault where raw incoming files are archived before transformation.<br>
-                    • <strong>Bucket Path:</strong> <code>s3a://ayush-consumer-producer/data/sample/YYYY-MM-DD.json</code><br>
-                    • <strong>Sensor Synchronization:</strong> <code>S3KeySensor</code> periodically checks ("pokes") for the existence of today's file before allowing downstream jobs to run.<br>
-                    • <strong>Failure Modes Detected:</strong> Missing S3 partition key (upstream task was skipped), Access Denied (IAM role credentials expired), or 0-byte empty file.
-                </div>
+            <div style='margin-top: 8px;'><span class='badge-stage'>s3a:// Staging</span></div>
+        </div>
+        """, unsafe_allow_html=True)
+    with f_col3:
+        st.markdown("""
+        <div class='step-card'>
+            <div class='step-card-num'>Step 3</div>
+            <div class='step-card-title'>PySpark Filter</div>
+            <div class='step-card-desc'>
+                Enforces schema rules; corrupt nulls diverted to Dead-Letter Queue.
             </div>
-            """, unsafe_allow_html=True)
-        with col_st2:
-            st.markdown("""
-            <div class='diagnostic-panel'>
-                <strong>Storage Architecture Properties:</strong><br>
-                • <strong>Bucket:</strong> <code>ayush-consumer-producer</code><br>
-                • <strong>Storage Class:</strong> S3 Standard (Hot Tier)<br>
-                • <strong>Partition Format:</strong> Date-partitioned JSON<br>
-                • <strong>Sensor Poke Interval:</strong> 60 seconds (Timeout: 300s)
+            <div style='margin-top: 8px;'><span class='badge-stage'>PySpark StructType</span></div>
+        </div>
+        """, unsafe_allow_html=True)
+    with f_col4:
+        st.markdown("""
+        <div class='step-card'>
+            <div class='step-card-num'>Step 4</div>
+            <div class='step-card-title'>PostgreSQL & AI</div>
+            <div class='step-card-desc'>
+                Stores clean rows, while Attention-GRU predicts failures before crashes.
             </div>
-            """, unsafe_allow_html=True)
-            
-    elif "Stage 3" in selected_stage:
-        with col_st1:
-            st.markdown(f"""
-            <div class='step-card'>
-                <div class='step-card-num'>Pipeline Stage 3 of 4</div>
-                <div class='step-card-title'>PySpark Distributed Transformation & Quality Audit</div>
-                <div class='step-card-desc'>
-                    • <strong>Plain English Role:</strong> High-performance distributed data filter that ensures only 100% clean, valid records enter the database.<br>
-                    • <strong>Engine:</strong> Apache Spark (PySpark) with strict <code>StructType</code> schema enforcement.<br>
-                    • <strong>Quality Validation Rule:</strong> Rejects batches if primary identity columns (<code>id</code>, <code>email</code>) contain NULL or corrupted data types.<br>
-                    • <strong>Failure Modes Detected:</strong> Schema drift (source added incompatible columns), Null value breach, or Spark Executor JVM Out-Of-Memory (OOM).
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-        with col_st2:
-            st.markdown("""
-            <div class='diagnostic-panel'>
-                <strong>Data Quality Assurance Metrics:</strong><br>
-                • <strong>Required Schema:</strong> <code>id: INT, name: STR, email: STR</code><br>
-                • <strong>Null Tolerance:</strong> 0% (Strict zero-defect gate)<br>
-                • <strong>Processing Framework:</strong> PySpark Local/Cluster Session<br>
-                • <strong>Output Staging:</strong> Parquet clean partition
-            </div>
-            """, unsafe_allow_html=True)
-            
-    else:
-        with col_st1:
-            st.markdown(f"""
-            <div class='step-card'>
-                <div class='step-card-num'>Pipeline Stage 4 of 4</div>
-                <div class='step-card-title'>PostgreSQL Relational Warehouse Load</div>
-                <div class='step-card-desc'>
-                    • <strong>Plain English Role:</strong> Final destination where analytics tables live for business reporting and dashboards.<br>
-                    • <strong>Target Table:</strong> <code>users_daily (id, name, email, dt)</code><br>
-                    • <strong>Idempotent Safety:</strong> Uses <code>DELETE FROM users_daily WHERE dt = 'today'</code> followed by <code>INSERT</code>. If the pipeline re-runs 10 times, the database remains 100% accurate with zero duplicate rows.<br>
-                    • <strong>Failure Modes Detected:</strong> Port 5432 Connection Refused, Connection Pool Exhaustion (max_connections reached), or Table Deadlock timeouts.
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-        with col_st2:
-            st.markdown("""
-            <div class='diagnostic-panel'>
-                <strong>Database Transaction Properties:</strong><br>
-                • <strong>Engine:</strong> PostgreSQL 14 (ACID Compliant)<br>
-                • <strong>Strategy:</strong> Partition Delete-and-Insert<br>
-                • <strong>Transaction Isolation:</strong> Read Committed<br>
-                • <strong>Connection Management:</strong> Airflow PostgresHook
-            </div>
-            """, unsafe_allow_html=True)
+            <div style='margin-top: 8px;'><span class='badge-stage'>Attention-GRU</span></div>
+        </div>
+        """, unsafe_allow_html=True)
