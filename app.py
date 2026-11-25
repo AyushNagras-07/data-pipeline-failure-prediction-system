@@ -34,7 +34,7 @@ sys.path.append(PROJECT_ROOT)
 
 from src.models.attention_model import AttentionGRU
 from src.features.sequence_generator import FEATURE_COLUMNS, STAGE_NAMES
-from src.data.log_analyzer import get_run_analysis_by_log_id, load_logs_database, parse_log_root_cause
+from src.data.log_analyzer import get_run_analysis_by_log_id, load_logs_database, parse_log_root_cause, generate_dynamic_remediation
 
 # -----------------------------------------------------------------------------
 # Page Configuration
@@ -318,8 +318,95 @@ st.markdown("""
         70% { opacity: 1; }
         100% { transform: translateX(35px); opacity: 0; }
     }
+
+    /* Dynamic Remediation & Problem Diagnosis Card */
+    .remediation-card {
+        background-color: #FFFFFF;
+        border: 1.5px solid #CBD5E1;
+        border-radius: 10px;
+        padding: 20px 22px;
+        margin-top: 18px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+    .remediation-critical {
+        border-color: #F87171 !important;
+        border-left: 6px solid #DC2626 !important;
+    }
+    .remediation-elevated {
+        border-color: #FBBF24 !important;
+        border-left: 6px solid #D97706 !important;
+    }
+    .remediation-nominal {
+        border-color: #86EFAC !important;
+        border-left: 6px solid #16A34A !important;
+    }
+    .remediation-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #0F172A;
+        margin-bottom: 6px;
+    }
+    .remediation-section-hdr {
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #475569;
+        margin-top: 12px;
+        margin-bottom: 4px;
+    }
 </style>
 """, unsafe_allow_html=True)
+
+def render_dynamic_remediation_card(remed_info, key_suffix="default"):
+    """
+    Renders a dynamic, professional diagnostic card detailing:
+    - What is the issue? (Operational Problem Signature)
+    - What is causing the problem? (Dynamic Root-Cause Analysis combining Attention & Telemetry Drift)
+    - Prescribed Engineering Solution (Numbered Actionable Steps)
+    - Interactive Self-Healing Simulation Action
+    """
+    alert_cls = remed_info.get("alert_class", "nominal")
+    alert_tag = remed_info.get("alert_tag", "NOMINAL SLA")
+    title = remed_info.get("issue_title", "")
+    summary = remed_info.get("issue_summary", "")
+    root_cause = remed_info.get("root_cause_explanation", "")
+    steps = remed_info.get("remediation_steps", [])
+    btn_label = remed_info.get("automated_action_label", "Apply Remediation")
+    btn_res = remed_info.get("automated_action_result", "Action applied successfully.")
+    
+    steps_html = "".join([
+        f"<li style='margin-bottom: 5px;'><strong>{s.split(':', 1)[0]}:</strong>{s.split(':', 1)[1]}</li>"
+        if ":" in s else f"<li style='margin-bottom: 5px;'>{s}</li>"
+        for s in steps
+    ])
+    
+    st.markdown(f"""
+    <div class='remediation-card remediation-{alert_cls}'>
+        <div style='display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;'>
+            <span class='badge-{alert_cls}'>{alert_tag}</span>
+            <span style='font-size: 0.78rem; font-weight: 600; color: #64748B; letter-spacing: 0.05em;'>DYNAMIC XAI DIAGNOSTIC ENGINE</span>
+        </div>
+        <div class='remediation-title'>{title}</div>
+        <div style='font-size: 0.90rem; color: #334155; line-height: 1.5; margin-bottom: 12px;'>
+            {summary}
+        </div>
+        <div class='remediation-section-hdr'>What is Causing the Problem (Root Cause Analysis):</div>
+        <div style='font-size: 0.88rem; color: #1E293B; line-height: 1.55; background: #F8FAFC; padding: 12px 14px; border-radius: 6px; border: 1px solid #E2E8F0; margin-bottom: 12px;'>
+            {root_cause}
+        </div>
+        <div class='remediation-section-hdr'>Prescribed Engineering Solution & Mitigation Steps:</div>
+        <ol style='font-size: 0.88rem; color: #334155; line-height: 1.55; margin-left: -15px; margin-bottom: 8px;'>
+            {steps_html}
+        </ol>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    col_act1, col_act2 = st.columns([1.8, 2.2])
+    with col_act1:
+        if st.button(f"Simulate Action: {btn_label}", key=f"btn_remed_{key_suffix}"):
+            st.success(f"{btn_res}")
 
 # -----------------------------------------------------------------------------
 # Data & Model Loaders
@@ -511,8 +598,19 @@ with tab1:
         </div>
         """, unsafe_allow_html=True)
         
+    # Dynamic Diagnostic & Actionable Remediation Panel
+    st.markdown("<div class='section-title'>4. Operational Root Cause & Actionable Engineering Remediation</div>", unsafe_allow_html=True)
+    remed_tab1 = generate_dynamic_remediation(
+        risk_val=risk_val,
+        top_subsystem=top_stage_name,
+        conf=top_stage_conf,
+        attn_weights=attn_np,
+        window_features=window_df
+    )
+    render_dynamic_remediation_card(remed_tab1, key_suffix=f"tab1_{selected_run}")
+        
     # Primary/Foreign Key Log Viewer
-    st.markdown("<div class='section-title'>4. Relational Log Analysis (Joined on log_id)</div>", unsafe_allow_html=True)
+    st.markdown("<div class='section-title'>5. Relational Log Analysis (Joined on log_id)</div>", unsafe_allow_html=True)
     log_id = target_row['log_id']
     analysis = get_run_analysis_by_log_id(log_id)
     
@@ -689,6 +787,17 @@ with tab2:
                 "Weight (%)": [w * 100 for w in s_attn]
             })
             st.bar_chart(s_df, x="Step", y="Weight (%)")
+            
+        # Dynamic Diagnostic & Actionable Engineering Remediation Panel
+        st.markdown("<div class='section-title'>Operational Root Cause & Prescribed Engineering Remediation</div>", unsafe_allow_html=True)
+        remed_sim = generate_dynamic_remediation(
+            risk_val=s_risk,
+            top_subsystem=sim_top_stage,
+            conf=float(np.max(s_cause)),
+            attn_weights=s_attn,
+            window_features=sim_df
+        )
+        render_dynamic_remediation_card(remed_sim, key_suffix="sim_sliders")
 
     elif sim_mode == "Telemetry CSV Evaluation (Batch)":
         st.markdown("<div class='section-title'>Batch Telemetry CSV Evaluation</div>", unsafe_allow_html=True)
@@ -851,6 +960,24 @@ with tab2:
                         "Weight (%)": [w * 100 for w in s_attn]
                     })
                     st.bar_chart(s_df, x="Step", y="Weight (%)")
+                    
+                # Dynamic Diagnostic & Actionable Remediation Panel for Batch CSV Window
+                st.markdown("<div class='section-title'>Operational Root Cause & Prescribed Engineering Remediation</div>", unsafe_allow_html=True)
+                sel_row_match = user_df[user_df['run_id'] == selected_target] if 'run_id' in user_df.columns else None
+                if sel_row_match is not None and not sel_row_match.empty:
+                    sel_pos = sel_row_match.index[0]
+                    csv_slice = user_df.iloc[max(0, sel_pos-2):sel_pos+1]
+                else:
+                    csv_slice = user_df.iloc[max(0, sel_idx-2):sel_idx+1]
+                    
+                remed_csv = generate_dynamic_remediation(
+                    risk_val=s_risk,
+                    top_subsystem=sim_top_stage,
+                    conf=sim_top_conf,
+                    attn_weights=s_attn,
+                    window_features=csv_slice
+                )
+                render_dynamic_remediation_card(remed_csv, key_suffix=f"csv_{selected_target}")
                     
                 # Relational Log Inspection for the Selected Run (if log_id or log_text column is in CSV)
                 csv_log_text = None
