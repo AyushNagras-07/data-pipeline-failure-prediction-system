@@ -43,47 +43,148 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for high-contrast cards and metrics
+# Professional Enterprise Theme (Slate Navy / Royal Blue Palette)
 st.markdown("""
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+    
+    html, body, [class*="css"] {
+        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    
+    /* Main Title & Subtitle */
     .main-header {
-        font-size: 2.2rem;
+        font-size: 2.1rem;
         font-weight: 700;
-        color: #1E3A8A;
-        margin-bottom: 0px;
+        color: #0F172A;
+        letter-spacing: -0.025em;
+        margin-bottom: 4px;
     }
     .sub-header {
-        font-size: 1.05rem;
-        color: #4B5563;
-        margin-bottom: 20px;
+        font-size: 0.95rem;
+        color: #475569;
+        margin-bottom: 24px;
+        font-weight: 400;
     }
-    .card-risk-low {
-        background-color: #ECFDF5;
-        border-left: 6px solid #10B981;
-        padding: 16px;
-        border-radius: 8px;
-    }
-    .card-risk-med {
-        background-color: #FFFBEB;
-        border-left: 6px solid #F59E0B;
-        padding: 16px;
-        border-radius: 8px;
-    }
-    .card-risk-high {
-        background-color: #FEF2F2;
-        border-left: 6px solid #EF4444;
-        padding: 16px;
-        border-radius: 8px;
-    }
-    .log-container {
-        background-color: #1E1E1E;
-        color: #D4D4D4;
-        font-family: 'Courier New', monospace;
-        padding: 14px;
-        border-radius: 6px;
+    
+    /* Section Headings */
+    .section-title {
         font-size: 0.85rem;
-        max-height: 280px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #475569;
+        margin-top: 18px;
+        margin-bottom: 12px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid #E2E8F0;
+    }
+    
+    /* Metric & Insight Panels */
+    .metric-panel {
+        background-color: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 8px;
+        padding: 14px 16px;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+        margin-bottom: 10px;
+    }
+    .metric-panel-label {
+        font-size: 0.78rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #64748B;
+        margin-bottom: 4px;
+    }
+    .metric-panel-value {
+        font-size: 1.45rem;
+        font-weight: 700;
+        color: #0F172A;
+    }
+    
+    /* Professional Status Badges */
+    .badge-critical {
+        background-color: #FEF2F2;
+        color: #991B1B;
+        border: 1px solid #FCA5A5;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.82rem;
+        display: inline-block;
+    }
+    .badge-elevated {
+        background-color: #FFFBEB;
+        color: #92400E;
+        border: 1px solid #FCD34D;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.82rem;
+        display: inline-block;
+    }
+    .badge-nominal {
+        background-color: #F0FDF4;
+        color: #166534;
+        border: 1px solid #86EFAC;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.82rem;
+        display: inline-block;
+    }
+    .badge-stage {
+        background-color: #EFF6FF;
+        color: #1E40AF;
+        border: 1px solid #BFDBFE;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.82rem;
+        display: inline-block;
+    }
+    
+    /* Diagnostic Detail Card */
+    .diagnostic-panel {
+        background-color: #F8FAFC;
+        border: 1px solid #E2E8F0;
+        border-radius: 8px;
+        padding: 16px;
+        font-size: 0.90rem;
+    }
+    
+    /* Terminal Box for Airflow Execution Logs */
+    .log-container {
+        background-color: #0B1120;
+        color: #E2E8F0;
+        font-family: 'JetBrains Mono', 'Courier New', monospace;
+        padding: 16px;
+        border: 1px solid #1E293B;
+        border-radius: 8px;
+        font-size: 0.80rem;
+        line-height: 1.5;
+        max-height: 270px;
         overflow-y: auto;
+    }
+    
+    /* Streamlit Tab Customization */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 6px;
+        border-bottom: 1px solid #E2E8F0;
+    }
+    .stTabs [data-baseweb="tab"] {
+        font-weight: 500;
+        font-size: 0.92rem;
+        padding: 8px 16px;
+        color: #64748B;
+        border-radius: 6px 6px 0 0;
+    }
+    .stTabs [aria-selected="true"] {
+        background-color: #EFF6FF !important;
+        color: #1D4ED8 !important;
+        font-weight: 600 !important;
+        border-bottom: 2px solid #2563EB !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -192,7 +293,7 @@ with tab1:
     window_df = df_telem.iloc[run_idx-3:run_idx]
     target_row = df_telem.iloc[run_idx]
     
-    st.markdown("##### 1. Historical Telemetry Sequence Input $[t-3, t-2, t-1]$")
+    st.markdown("<div class='section-title'>1. Historical Telemetry Sequence Input [t-3, t-2, t-1]</div>", unsafe_allow_html=True)
     cols_display = ['run_id', 'duration', 'records_processed', 'retry_count', 'memory_mb', 'failure_scenario', 'log_id']
     st.dataframe(window_df[cols_display], use_container_width=True, hide_index=True)
     
@@ -211,29 +312,50 @@ with tab1:
     top_stage_name = STAGE_NAMES[top_stage_idx]
     top_stage_conf = float(cause_probs[top_stage_idx])
     
-    st.markdown("##### 2. Dual-Head Model Inference & Operational Early Warning")
+    st.markdown("<div class='section-title'>2. Dual-Head Model Inference & Operational Early Warning</div>", unsafe_allow_html=True)
     col_m1, col_m2, col_m3, col_m4 = st.columns(4)
     
     with col_m1:
-        st.metric(
-            label="Predicted Failure Risk",
-            value=f"{risk_val:.1%}",
-            delta="- High Risk" if risk_val >= 0.5 else "+ Healthy",
-            delta_color="inverse" if risk_val >= 0.5 else "normal"
-        )
+        st.markdown(f"""
+        <div class='metric-panel'>
+            <div class='metric-panel-label'>Failure Risk Probability</div>
+            <div class='metric-panel-value'>{risk_val:.1%}</div>
+        </div>
+        """, unsafe_allow_html=True)
         
     with col_m2:
-        risk_badge = "CRITICAL HIGH" if risk_val >= 0.70 else ("ELEVATED" if risk_val >= 0.35 else "NOMINAL")
-        st.metric(label="Risk State", value=risk_badge)
+        if risk_val >= 0.70:
+            badge_html = "<span class='badge-critical'>CRITICAL HIGH RISK</span>"
+        elif risk_val >= 0.35:
+            badge_html = "<span class='badge-elevated'>ELEVATED RISK</span>"
+        else:
+            badge_html = "<span class='badge-nominal'>NOMINAL SLA</span>"
+            
+        st.markdown(f"""
+        <div class='metric-panel'>
+            <div class='metric-panel-label'>Operational Status</div>
+            <div style='margin-top: 6px;'>{badge_html}</div>
+        </div>
+        """, unsafe_allow_html=True)
         
     with col_m3:
-        st.metric(label="Predicted Failing Subsystem", value=top_stage_name)
+        st.markdown(f"""
+        <div class='metric-panel'>
+            <div class='metric-panel-label'>Attributed Subsystem</div>
+            <div style='margin-top: 6px;'><span class='badge-stage'>{top_stage_name}</span></div>
+        </div>
+        """, unsafe_allow_html=True)
         
     with col_m4:
-        st.metric(label="Subsystem Confidence", value=f"{top_stage_conf:.1%}")
+        st.markdown(f"""
+        <div class='metric-panel'>
+            <div class='metric-panel-label'>Subsystem Confidence</div>
+            <div class='metric-panel-value'>{top_stage_conf:.1%}</div>
+        </div>
+        """, unsafe_allow_html=True)
         
     # Temporal Attention Breakdown
-    st.markdown("##### 3. Temporal Attention Weights (Explainable AI Attribution)")
+    st.markdown("<div class='section-title'>3. Temporal Attention Weights (Explainable AI Attribution)</div>", unsafe_allow_html=True)
     col_attn1, col_attn2 = st.columns([1.5, 1])
     
     with col_attn1:
@@ -248,27 +370,35 @@ with tab1:
     with col_attn2:
         max_t = int(np.argmax(attn_np))
         st.markdown(f"""
-        **Temporal Explainability Diagnosis:**
-        - **Dominant Driver:** `Run t-{3-max_t}` accounts for **{attn_np[max_t]:.1%}** of model attention.
-        - **Degradation Pattern:** Compounding memory or latency creeping initiated at this step.
-        - **Target Ground Truth:** `{target_row['failure_scenario']}` (Status: {target_row['status']})
-        """)
+        <div class='diagnostic-panel'>
+            <strong>Temporal Explainability Summary:</strong><br><br>
+            • <strong>Dominant Root-Cause Driver:</strong> <code>Run t-{3-max_t}</code> accounts for <strong>{attn_np[max_t]:.1%}</strong> of total attention focus.<br>
+            • <strong>Trajectory:</strong> Pre-failure telemetry anomalies initiated during this execution step.<br>
+            • <strong>Target Ground Truth:</strong> <code>{target_row['failure_scenario']}</code> (Actual status: {target_row['status']})
+        </div>
+        """, unsafe_allow_html=True)
         
     # Primary/Foreign Key Log Viewer
-    st.markdown("##### 4. Relational Log Viewer (Joined on `log_id`)")
+    st.markdown("<div class='section-title'>4. Relational Log Analysis (Joined on log_id)</div>", unsafe_allow_html=True)
     log_id = target_row['log_id']
     analysis = get_run_analysis_by_log_id(log_id)
     
     col_log1, col_log2 = st.columns([1, 1.2])
     with col_log1:
-        st.info(f"**Foreign Key `log_id`:** `{log_id}`")
-        st.markdown(f"**Identified Failing Stage:** `{analysis['stage']}`")
-        st.markdown(f"**Error Signature:** `{analysis['error_signature']}`")
-        st.markdown(f"**Plain-English Root Cause:** {analysis['root_cause']}")
-        st.warning(f"**Recommended Engineering Action:** {analysis['recommendation']}")
+        st.markdown(f"""
+        <div class='diagnostic-panel'>
+            <strong>Database Key:</strong> <code>{log_id}</code><br><br>
+            <strong>Failing Stage:</strong> <code>{analysis['stage']}</code><br>
+            <strong>Exception Class:</strong> <code>{analysis['error_signature']}</code><br><br>
+            <strong>Plain-English Diagnosis:</strong><br>
+            {analysis['root_cause']}<br><br>
+            <strong>Engineering Remediation:</strong><br>
+            {analysis['recommendation']}
+        </div>
+        """, unsafe_allow_html=True)
         
     with col_log2:
-        st.caption("Raw Multi-Task Airflow Execution Trace (from `data/raw/pipeline_logs.json`):")
+        st.caption("Raw Multi-Task Airflow Execution Trace (from data/raw/pipeline_logs.json):")
         raw_log = analysis['raw_log']
         st.markdown(f"<div class='log-container'>{raw_log.replace('<', '&lt;').replace('>', '&gt;')}</div>", unsafe_allow_html=True)
 
@@ -343,22 +473,34 @@ with tab2:
         s_attn = sim_attn.squeeze(0).numpy()
         
     st.divider()
-    st.markdown("### Simulated Real-Time Prediction Results")
+    st.markdown("<div class='section-title'>Simulated Real-Time Prediction Results</div>", unsafe_allow_html=True)
     
     col_sr1, col_sr2, col_sr3 = st.columns([1, 1, 2])
     with col_sr1:
-        st.metric("Predicted Failure Risk", f"{s_risk:.1%}")
         if s_risk >= 0.70:
-            st.error("CRITICAL RISK DETECTED")
+            badge_sim = "<span class='badge-critical'>CRITICAL RISK</span>"
         elif s_risk >= 0.35:
-            st.warning("ELEVATED PRE-FAILURE RISK")
+            badge_sim = "<span class='badge-elevated'>ELEVATED RISK</span>"
         else:
-            st.success("NOMINAL SLA")
+            badge_sim = "<span class='badge-nominal'>NOMINAL SLA</span>"
+            
+        st.markdown(f"""
+        <div class='metric-panel'>
+            <div class='metric-panel-label'>Predicted Risk Probability</div>
+            <div class='metric-panel-value'>{s_risk:.1%}</div>
+            <div style='margin-top: 6px;'>{badge_sim}</div>
+        </div>
+        """, unsafe_allow_html=True)
             
     with col_sr2:
         sim_top_stage = STAGE_NAMES[int(np.argmax(s_cause))]
-        st.metric("Attributed Subsystem", sim_top_stage)
-        st.metric("Subsystem Confidence", f"{np.max(s_cause):.1%}")
+        st.markdown(f"""
+        <div class='metric-panel'>
+            <div class='metric-panel-label'>Attributed Subsystem</div>
+            <div style='margin-top: 6px;'><span class='badge-stage'>{sim_top_stage}</span></div>
+            <div style='margin-top: 8px; font-size: 0.85rem; color: #64748B;'>Confidence: <strong>{np.max(s_cause):.1%}</strong></div>
+        </div>
+        """, unsafe_allow_html=True)
         
     with col_sr3:
         st.caption("Temporal Attention Focus over Input Window:")
