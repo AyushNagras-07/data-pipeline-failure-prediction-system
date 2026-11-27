@@ -1,23 +1,42 @@
 # Project Documentation (`docs/`)
 
-## 1. What This Folder Is
-This directory is the central repository for technical documentation, academic deliverables, experimental notes, and architectural design records.
+This directory contains the formal academic documentation, technical reports, architecture guides, and publication-grade artifacts for the **Data Pipeline Failure Prediction System**.
 
-## 2. Why This Folder Exists
-As an academic project for **Advanced Neural Network Architectures (ANNA — Course Code: 2307411T)**, rigorous documentation is essential for both Mid-Review Evaluation (40 Marks) and End-Semester Project Examination (50 Marks). Maintaining structured documentation alongside code ensures all decisions, literature reviews, and empirical results are captured systematically.
+---
 
-## 3. What Will Eventually Be Stored Here
-As the project progresses through future phases, this folder will house:
-- **`architecture_decisions.md`**: Technical justifications for design choices (e.g., choice of sequential models, sequence window lengths, feature sets).
-- **`literature_survey_and_gap.md`**: Summaries of reviewed research papers on pipeline failure prediction and time-series anomaly detection, highlighting the specific research gap addressed.
-- **`methodology.md`**: Detailed explanations of telemetry preprocessing, sequence generation, loss formulations, and optimization strategies (learning rates, optimizers, regularization).
-- **`experiment_notes.md`**: Logs of training runs, hyperparameter sweeps, convergence curves, and optimization challenges.
-- **`model_comparison.md`**: Comparative performance tables and trade-off analyses (RNN vs. LSTM vs. GRU on Accuracy, Precision, Recall, F1, and computational latency).
-- **`diagrams/`**: High-level workflow charts, neural network architecture illustrations, and visual evaluation results (confusion matrices, ROC curves).
+## 1. Documentation Index
 
-## 4. How It Connects to the Overall Project
-This folder synthesizes the engineering outputs from `src/` and experimental results from `src/evaluation/` into formal academic documentation, serving as the basis for the technical project report, viva defense, and research paper presentation.
+| File / Directory | Purpose & Description |
+|:---|:---|
+| **[`Data_Pipeline_Failure_Prediction_System_Technical_Report.pdf`](Data_Pipeline_Failure_Prediction_System_Technical_Report.pdf)** | **20-Page Comprehensive Academic Technical Report** in monochrome B&W print-ready format. Matches official ANNA / MITAOE institutional criteria across Chapters 1 to 14. |
+| **[`generate_full_technical_report.py`](generate_full_technical_report.py)** | Standalone Python ReportLab script that programmatically compiles the 20-page PDF report with Calibri typography, official MITAOE logo, and rendered math equations. |
+| **[`AIRFLOW_INTEGRATION_AND_MID_REVIEW_GUIDE.md`](AIRFLOW_INTEGRATION_AND_MID_REVIEW_GUIDE.md)** | Deep-dive guide explaining the 4-stage Apache Airflow pipeline grounding, failure injection mechanisms, and mid-review defense points. |
+| **[`figures/`](figures/)** | High-resolution publication figures, application screenshots, and rendered mathematical equation images embedded in the technical report. |
 
-## 5. What We Are NOT Doing Yet
-- We are **not** creating premature or boilerplate documentation files at this stage.
-- Documentation will be authored progressively as empirical experiments and modules are completed.
+---
+
+## 2. Academic Project Information
+
+* **Course:** Advanced Neural Network Architectures (Course Code: `2307411T` — Track 2: Sequential Models)
+* **Institution:** Department of Electronics and Telecommunication Engineering, MIT Academy of Engineering, Pune (MITAOE)
+* **Guide:** Dr. Smita Kulkarni
+* **Academic Year:** 2026–2027
+* **Group 12 Members:**
+  1. **Ayush Nagras** (PRN: 202301070001)
+  2. **Siddhesh Bhivare** (PRN: 202301070005)
+  3. **Om Nikam** (PRN: 202301070006)
+  4. **Vaibhav Tajane** (PRN: 202301070008)
+
+---
+
+## 3. How to Recompile the Technical Report PDF
+
+To regenerate the 20-page technical report PDF from scratch:
+
+```bash
+# Ensure reportlab, matplotlib, and pillow are installed
+python docs/generate_full_technical_report.py
+```
+
+The output file is written to:
+`docs/Data_Pipeline_Failure_Prediction_System_Technical_Report.pdf`
