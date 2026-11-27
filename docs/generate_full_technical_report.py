@@ -4,8 +4,9 @@ Course: Advanced Neural Network Architectures (Course Code: 2307411T - ANNA, Tra
 Department of Electronics and Telecommunication Engineering, MIT Academy of Engineering, Pune
 Academic Year: 2026-2027
 
-Generates a publication-grade 24-page academic Project Report PDF matching exactly the
-structure, chapter numbering, tables, math, figures, and styling of the reference PDF.
+Uses Calibri font (via Carlito TrueType metrics), official MITAOE logo banner,
+exact chapter naming, concise on-point academic content, and starts every one of the
+15 main points on a new page.
 """
 
 import os
@@ -18,11 +19,26 @@ from reportlab.platypus import (
 )
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.pdfgen import canvas
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.lib.fonts import addMapping
+
+# Register Calibri font family using system Carlito TrueType fonts (exact metric match)
+FONT_DIR = "/usr/share/fonts/truetype/crosextra"
+pdfmetrics.registerFont(TTFont('Calibri', os.path.join(FONT_DIR, 'Carlito-Regular.ttf')))
+pdfmetrics.registerFont(TTFont('Calibri-Bold', os.path.join(FONT_DIR, 'Carlito-Bold.ttf')))
+pdfmetrics.registerFont(TTFont('Calibri-Italic', os.path.join(FONT_DIR, 'Carlito-Italic.ttf')))
+pdfmetrics.registerFont(TTFont('Calibri-BoldItalic', os.path.join(FONT_DIR, 'Carlito-BoldItalic.ttf')))
+
+addMapping('Calibri', 0, 0, 'Calibri')
+addMapping('Calibri', 1, 0, 'Calibri-Bold')
+addMapping('Calibri', 0, 1, 'Calibri-Italic')
+addMapping('Calibri', 1, 1, 'Calibri-BoldItalic')
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 OUTPUT_PDF = os.path.join(PROJECT_ROOT, "docs", "Data_Pipeline_Failure_Prediction_System_Technical_Report.pdf")
 FIGURES_DIR = os.path.join(PROJECT_ROOT, "docs", "figures")
-REPORTS_FIGURES_DIR = os.path.join(PROJECT_ROOT, "reports", "figures")
+LOGO_PATH = os.path.join(FIGURES_DIR, "mitaoe_logo.png")
 
 class NumberedCanvas(canvas.Canvas):
     def __init__(self, *args, **kwargs):
@@ -44,11 +60,11 @@ class NumberedCanvas(canvas.Canvas):
     def draw_decorations(self, page_count):
         if self._pageNumber > 1:
             self.saveState()
-            # Top Running Header
-            self.setFont("Helvetica-Bold", 8)
+            # Top Running Header in Calibri
+            self.setFont("Calibri-Bold", 8.5)
             self.setFillColor(colors.HexColor("#334155"))
             self.drawString(54, 752, "DATA PIPELINE FAILURE PREDICTION SYSTEM")
-            self.setFont("Helvetica", 8)
+            self.setFont("Calibri", 8.5)
             self.setFillColor(colors.HexColor("#64748B"))
             self.drawRightString(letter[0] - 54, 752, "Course 2307411T: ANNA | Group 12")
             
@@ -59,7 +75,7 @@ class NumberedCanvas(canvas.Canvas):
             
             # Footer line
             self.line(54, 48, letter[0] - 54, 48)
-            self.setFont("Helvetica", 8)
+            self.setFont("Calibri", 8.5)
             self.setFillColor(colors.HexColor("#64748B"))
             self.drawString(54, 36, "Department of E&TC, MIT Academy of Engineering, Pune | Academic Year 2026–2027")
             self.drawRightString(letter[0] - 54, 36, f"Page {self._pageNumber} of {page_count}")
@@ -83,52 +99,52 @@ def build_pdf():
     c_blue = colors.HexColor("#1D4ED8")
     c_slate = colors.HexColor("#334155")
     c_muted = colors.HexColor("#64748B")
-    c_border = colors.HexColor("#E2E8F0")
+    c_border = colors.HexColor("#CBD5E1")
     c_bg_light = colors.HexColor("#F8FAFC")
     c_accent_bg = colors.HexColor("#EFF6FF")
     
     title_style = ParagraphStyle(
         'CoverTitle',
         parent=styles['Normal'],
-        fontName='Helvetica-Bold',
+        fontName='Calibri-Bold',
         fontSize=20,
         leading=24,
         alignment=1, # Center
         textColor=c_navy,
-        spaceAfter=8
+        spaceAfter=6
     )
     
     subtitle_style = ParagraphStyle(
         'CoverSubtitle',
         parent=styles['Normal'],
-        fontName='Helvetica',
+        fontName='Calibri',
         fontSize=11,
         leading=15,
         alignment=1,
         textColor=c_blue,
-        spaceAfter=15
+        spaceAfter=12
     )
     
     h1_style = ParagraphStyle(
         'Heading1_Custom',
         parent=styles['Normal'],
-        fontName='Helvetica-Bold',
+        fontName='Calibri-Bold',
         fontSize=13,
-        leading=17,
+        leading=16,
         textColor=c_navy,
-        spaceBefore=8,
-        spaceAfter=6,
+        spaceBefore=0,
+        spaceAfter=5,
         keepWithNext=True
     )
     
     h2_style = ParagraphStyle(
         'Heading2_Custom',
         parent=styles['Normal'],
-        fontName='Helvetica-Bold',
+        fontName='Calibri-Bold',
         fontSize=10,
-        leading=14,
+        leading=13.5,
         textColor=c_blue,
-        spaceBefore=6,
+        spaceBefore=5,
         spaceAfter=3,
         keepWithNext=True
     )
@@ -136,7 +152,7 @@ def build_pdf():
     h3_style = ParagraphStyle(
         'Heading3_Custom',
         parent=styles['Normal'],
-        fontName='Helvetica-Bold',
+        fontName='Calibri-Bold',
         fontSize=9,
         leading=12,
         textColor=c_slate,
@@ -148,17 +164,17 @@ def build_pdf():
     body_style = ParagraphStyle(
         'Body_Custom',
         parent=styles['Normal'],
-        fontName='Helvetica',
-        fontSize=8.5,
-        leading=11.8,
+        fontName='Calibri',
+        fontSize=8.6,
+        leading=11.6,
         textColor=c_slate,
-        spaceAfter=5
+        spaceAfter=4
     )
     
     body_bold = ParagraphStyle(
         'Body_Bold',
         parent=body_style,
-        fontName='Helvetica-Bold'
+        fontName='Calibri-Bold'
     )
     
     bullet_style = ParagraphStyle(
@@ -166,7 +182,7 @@ def build_pdf():
         parent=body_style,
         leftIndent=12,
         firstLineIndent=-8,
-        spaceAfter=3
+        spaceAfter=2.5
     )
     
     code_style = ParagraphStyle(
@@ -174,58 +190,47 @@ def build_pdf():
         parent=styles['Normal'],
         fontName='Courier',
         fontSize=7.2,
-        leading=9.5,
+        leading=9.2,
         textColor=colors.HexColor("#0F172A"),
         backColor=colors.HexColor("#F1F5F9"),
-        borderPadding=5,
-        spaceAfter=5
-    )
-    
-    callout_style = ParagraphStyle(
-        'Callout_Custom',
-        parent=styles['Normal'],
-        fontName='Helvetica',
-        fontSize=8.2,
-        leading=11.5,
-        textColor=colors.HexColor("#1E293B"),
-        backColor=c_accent_bg,
-        borderColor=colors.HexColor("#93C5FD"),
-        borderWidth=0.8,
-        borderPadding=6,
-        spaceBefore=4,
-        spaceAfter=6
+        borderPadding=4,
+        spaceAfter=4
     )
     
     caption_style = ParagraphStyle(
         'Caption_Custom',
         parent=styles['Normal'],
-        fontName='Helvetica-Oblique',
+        fontName='Calibri-Italic',
         fontSize=7.8,
-        leading=10.5,
+        leading=10.2,
         textColor=c_muted,
         alignment=1, # Center
-        spaceAfter=6
+        spaceAfter=5
     )
 
     story = []
 
     # =========================================================================
-    # PAGE 1: TITLE PAGE
+    # PAGE 1: TITLE PAGE (With MITAOE Logo Banner)
     # =========================================================================
-    story.append(Spacer(1, 15))
-    story.append(Paragraph("PROJECT REPORT", ParagraphStyle('ReportBanner', parent=title_style, fontSize=16, leading=20, textColor=colors.HexColor("#475569"))))
-    story.append(Spacer(1, 20))
+    story.append(Spacer(1, 10))
+    if os.path.exists(LOGO_PATH):
+        story.append(Image(LOGO_PATH, width=220, height=54, hAlign='CENTER'))
+        story.append(Spacer(1, 12))
+    
+    story.append(Paragraph("PROJECT REPORT", ParagraphStyle('ReportBanner', parent=title_style, fontSize=15, leading=19, textColor=colors.HexColor("#475569"))))
+    story.append(Spacer(1, 10))
     story.append(Paragraph("DATA PIPELINE FAILURE PREDICTION SYSTEM", title_style))
     story.append(Paragraph("Pre-Failure Early Warning & Root Cause Attribution using Dual-Head Temporal Attention GRUs", subtitle_style))
-    story.append(HRFlowable(width="100%", thickness=1.5, color=c_blue, spaceAfter=20))
+    story.append(HRFlowable(width="100%", thickness=1.2, color=c_blue, spaceAfter=14))
     
     story.append(Paragraph("<b>Advanced Neural Network Architectures</b>", ParagraphStyle('CourseTitle', parent=body_style, alignment=1, fontSize=11, leading=15, textColor=c_navy)))
     story.append(Paragraph("Course Code: 2307411T — Track 2: Sequential Models", ParagraphStyle('CourseSub', parent=body_style, alignment=1, fontSize=9.5, leading=13, textColor=c_slate)))
     story.append(Paragraph("Academic Year: 2026–2027", ParagraphStyle('Year', parent=body_style, alignment=1, fontSize=9.5, leading=13, textColor=c_slate)))
-    story.append(Spacer(1, 25))
+    story.append(Spacer(1, 16))
 
     story.append(Paragraph("<b>Submitted By :</b>", ParagraphStyle('SubBy', parent=body_style, fontSize=9.5, leading=13, textColor=c_navy)))
-    story.append(Spacer(1, 6))
+    story.append(Spacer(1, 4))
 
     # Author Table with strictly Ayush Nagras at the bottom
     authors_data = [
@@ -239,28 +244,30 @@ def build_pdf():
     t_authors.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#1E293B")),
         ('TEXTCOLOR', (0,0), (-1,0), colors.white),
-        ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+        ('FONTNAME', (0,0), (-1,-1), 'Calibri'),
+        ('FONTNAME', (0,0), (-1,0), 'Calibri-Bold'),
         ('FONTSIZE', (0,0), (-1,-1), 8.5),
-        ('LEADING', (0,0), (-1,-1), 12),
-        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#CBD5E1")),
-        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.HexColor("#F8FAFC")]),
-        ('TOPPADDING', (0,0), (-1,-1), 4),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 4),
+        ('LEADING', (0,0), (-1,-1), 11.5),
+        ('GRID', (0,0), (-1,-1), 0.5, c_border),
+        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, c_bg_light]),
+        ('TOPPADDING', (0,0), (-1,-1), 3),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 3),
         ('LEFTPADDING', (0,0), (-1,-1), 8),
         ('RIGHTPADDING', (0,0), (-1,-1), 8),
         ('ALIGN', (0,0), (0,-1), 'CENTER'),
     ]))
     story.append(t_authors)
-    story.append(Spacer(1, 30))
+    story.append(Spacer(1, 18))
 
     story.append(Paragraph("<b>Guided By:</b>", ParagraphStyle('GuideLabel', parent=body_style, alignment=1, fontSize=9.5, leading=13, textColor=c_navy)))
     story.append(Paragraph("<b>Dr. Smita Kulkarni</b>", ParagraphStyle('GuideName', parent=body_style, alignment=1, fontSize=11, leading=15, textColor=c_blue)))
-    story.append(Spacer(1, 45))
+    story.append(Spacer(1, 24))
 
-    story.append(Paragraph("<b>DEPARTMENT OF ELECTRONICS AND TELECOMMUNICATION ENGINEERING</b>", ParagraphStyle('Dept', parent=body_style, alignment=1, fontSize=10, leading=14, textColor=c_navy)))
-    story.append(Spacer(1, 4))
-    story.append(Paragraph("<b>MIT Academy of Engineering, Pune</b>", ParagraphStyle('College', parent=body_style, alignment=1, fontSize=11.5, leading=15, textColor=c_blue)))
+    story.append(Paragraph("<b>DEPARTMENT OF ELECTRONICS AND TELECOMMUNICATION ENGINEERING</b>", ParagraphStyle('Dept', parent=body_style, alignment=1, fontSize=9.5, leading=13.5, textColor=c_navy)))
+    story.append(Spacer(1, 2))
+    story.append(Paragraph("<b>MIT Academy of Engineering, Pune</b>", ParagraphStyle('College', parent=body_style, alignment=1, fontSize=11, leading=14.5, textColor=c_blue)))
     story.append(Paragraph("(An Autonomous Institute Affiliated to Savitribai Phule Pune University)", ParagraphStyle('Affil', parent=body_style, alignment=1, fontSize=8, leading=11, textColor=c_muted)))
+    story.append(Paragraph("Alandi (D), Pune – 412105", ParagraphStyle('City', parent=body_style, alignment=1, fontSize=8, leading=11, textColor=c_muted)))
     
     story.append(PageBreak())
 
@@ -269,11 +276,11 @@ def build_pdf():
     # =========================================================================
     story.append(Paragraph("Abstract", h1_style))
     story.append(Paragraph(
-        "Modern big data platforms orchestrate multi-stage pipelines across Apache Airflow, Apache Spark, PostgreSQL, and Amazon S3. "
-        "These architectures frequently encounter non-linear, cascading failures induced by memory leaks, database connection pool exhaustion, "
+        "Modern big data platforms orchestrate complex, multi-stage pipelines across Apache Airflow, Apache Spark, PostgreSQL, and Amazon S3. "
+        "These architectures frequently encounter non-linear, cascading failures induced by memory leaks, connection pool exhaustion, "
         "upstream API rate limits, and unannounced schema drift. Conventional monitoring approaches rely on static, univariate threshold alerts "
-        "(e.g., CloudWatch, Datadog) or post-mortem stack trace inspection. Such solutions are purely reactive, notifying engineering on-call teams "
-        "only after mission-critical DAGs have terminated abnormally, resulting in SLA violations, expensive manual investigations, and corrupted downstream datasets. "
+        "(e.g., CloudWatch, Datadog) or post-mortem stack trace inspection. Such solutions are purely reactive, notifying engineering teams "
+        "only after mission-critical DAGs have terminated abnormally, resulting in SLA breaches and expensive manual investigations. "
         "This project introduces an intelligent, proactive sequential failure prediction and root cause attribution system grounded in a "
         "<b>Dual-Head Gated Recurrent Unit neural network with Bahdanau Temporal Additive Attention (AttentionGRU)</b>.",
         body_style
@@ -296,9 +303,9 @@ def build_pdf():
     ))
     story.append(Paragraph(
         "<b>Keywords:</b> Data Engineering, Pipeline Failure Prediction, Gated Recurrent Units, Bahdanau Temporal Attention, Explainable AI, Apache Airflow, PySpark, Multi-Task Learning, Streamlit.",
-        ParagraphStyle('Keywords', parent=body_style, fontName='Helvetica-Oblique', fontSize=8, leading=11, textColor=c_slate)
+        ParagraphStyle('Keywords', parent=body_style, fontName='Calibri-Italic', fontSize=8, leading=11, textColor=c_slate)
     ))
-    story.append(Spacer(1, 10))
+    story.append(Spacer(1, 8))
 
     story.append(Paragraph("Table of contents", h2_style))
     toc_items = [
@@ -324,7 +331,7 @@ def build_pdf():
     story.append(PageBreak())
 
     # =========================================================================
-    # PAGE 3: CHAPTER 1: INTRODUCTION, PROBLEM STATEMENT AND OBJECTIVES
+    # PAGE 3: POINT 1: INTRODUCTION, PROBLEM STATEMENT AND OBJECTIVES
     # =========================================================================
     story.append(Paragraph("1. Introduction, Problem Statement and Objectives", h1_style))
     story.append(Paragraph("1.1 Introduction", h2_style))
@@ -334,16 +341,8 @@ def build_pdf():
         "Amazon Web Services (AWS) S3, and relational databases execute thousands of scheduled Directed Acyclic Graphs (DAGs) daily. "
         "These workflows ingest diverse data from third-party REST APIs, execute complex distributed transformations, enforce schema governance, "
         "and load analytical marts. However, operating distributed data pipelines at scale is notoriously susceptible to silent resource degradation, "
-        "intermittent network throttling, memory leaks, and database deadlocks.",
-        body_style
-    ))
-    story.append(Paragraph(
-        "When an Extract-Transform-Load (ETL) pipeline fails, downstream business intelligence dashboards display stale information, machine learning "
-        "models consume degraded features, and enterprise Service Level Agreements (SLAs) are breached. Traditionally, data platform reliability has "
-        "depended on static alert thresholds or post-mortem investigations by on-call site reliability engineers (SREs). These conventional methods "
-        "react only <i>after</i> a pipeline has crashed. This project addresses this vulnerability by developing a machine learning early-warning "
-        "system capable of analyzing sequential run telemetry to anticipate impending crashes before execution, isolating root causes, and providing "
-        "remediation steps.",
+        "intermittent network throttling, memory leaks, and database deadlocks. Traditional monitoring reacts only <i>after</i> a pipeline has crashed. "
+        "This project develops an explainable sequential early-warning system capable of analyzing run telemetry to anticipate impending crashes in advance.",
         body_style
     ))
 
@@ -352,7 +351,7 @@ def build_pdf():
         "Data engineering teams routinely struggle with cascading pipeline outages that exhibit subtle pre-failure warning signals across preceding runs—such as "
         "gradual worker RAM creep, incremental upstream API latency spikes, or micro-retries. Existing monitoring tools (e.g., Prometheus, Datadog, AWS CloudWatch) "
         "treat metrics as independent point-in-time values against fixed thresholds. They fail to capture temporal multi-run dependencies, cannot correlate multivariate "
-        "sensor signals across days, provide zero subsystem root cause attribution prior to task crashes, and offer no explainable insight into why a warning was triggered. "
+        "signals across days, provide zero subsystem root cause attribution prior to task crashes, and offer no explainable insight into why an alert was triggered. "
         "There is a compelling need for a sequential deep learning framework that ingests historical telemetry sequences, models temporal interdependencies, "
         "predicts failure probability, identifies the failing subsystem, and provides automated engineering remediation.",
         body_style
@@ -369,50 +368,42 @@ def build_pdf():
     story.append(Paragraph("1.4 Objectives", h2_style))
     objectives = [
         "Develop an enterprise 4-stage ETL pipeline architecture (REST Ingestion, S3 Staging, PySpark Audit, PostgreSQL Warehouse Load) with simulated real-world failure modes.",
-        "Construct a comprehensive 15-month historical telemetry sequence dataset (450 runs, 7 quantitative metrics) relationally joined on log_id with qualitative Airflow logs.",
-        "Implement a rigorous temporal sliding window feature generator (T = 3 observation days) with strict chronological train/validation/test splits to eliminate lookahead leakage.",
+        "Construct a 15-month historical telemetry sequence dataset (450 runs, 7 quantitative metrics) relationally joined on log_id with qualitative Airflow logs.",
+        "Implement a temporal sliding window feature generator (T = 3 observation days) with strict chronological train/validation/test splits to eliminate lookahead leakage.",
         "Design and construct the Dual-Head AttentionGRU PyTorch neural architecture with Bahdanau additive attention for Explainable AI (XAI).",
         "Formulate a composite multi-task training objective optimizing simultaneous Binary Cross-Entropy (risk prediction) and Categorical Cross-Entropy (subsystem attribution).",
-        "Execute systematic ablation sweeps across temporal window lengths (T in {3, 5, 7, 10}) and hidden dimensions (D in {12, 16, 24, 32, 64}).",
         "Benchmark the proposed AttentionGRU against competitive architectures including AttentionLSTM, Vanilla GRU, Random Forests, and static rule thresholds.",
-        "Build a natural language log diagnostic analyzer with 14 regex exception parsers and dynamic engineering remediation mapping.",
-        "Deploy a responsive, multi-page web dashboard on Streamlit Community Cloud with interactive playback, What-If simulation presets, batch CSV evaluation, and CSS animations.",
-        "Formulate a rigorous Viva Defense guide verifying all technical components across Course Outcomes CO3, CO4, and CO5."
+        "Deploy a responsive web dashboard on Streamlit Community Cloud with interactive playback, What-If simulation presets, batch CSV evaluation, and animated pipeline inspection."
     ]
     for obj in objectives:
         story.append(Paragraph(f"• &nbsp; {obj}", bullet_style))
 
-    story.append(PageBreak())
-
-    # =========================================================================
-    # PAGE 4: 1.5 SCOPE & CHAPTER 2: LITERATURE SURVEY (PART 1)
-    # =========================================================================
     story.append(Paragraph("1.5 Scope", h2_style))
     story.append(Paragraph(
         "The project encompasses batch data processing architectures orchestrated by Apache Airflow. The scope models 4 critical pipeline stages: "
         "Stage 1 (REST API Ingestion), Stage 2 (Amazon S3 Data Lake Partitioning), Stage 3 (PySpark Distributed Schema & Data Quality Audit), and "
-        "Stage 4 (PostgreSQL Enterprise Warehouse Idempotent Load). Telemetry metrics include duration, records processed, retry counts, worker memory, "
-        "CPU utilization, upstream API latency, and error rates. The sequential modeling horizon evaluates sliding windows of <i>T = 3</i> days. "
-        "The web dashboard is designed for data platform engineers, site reliability teams, and pipeline administrators to monitor runs, simulate hypothetical "
-        "stress conditions, and inspect automated remediation actions. Real-time streaming pipelines (e.g., Apache Flink, Kafka streams) are identified as future scope.",
+        "Stage 4 (PostgreSQL Enterprise Warehouse Idempotent Load). The sequential modeling horizon evaluates sliding windows of <i>T = 3</i> days. "
+        "The web dashboard is designed for data platform engineers, site reliability teams, and pipeline administrators to monitor runs and inspect automated remediation actions.",
         body_style
     ))
-    story.append(Spacer(1, 4))
 
+    story.append(PageBreak())
+
+    # =========================================================================
+    # PAGE 4: POINT 2: LITERATURE SURVEY
+    # =========================================================================
     story.append(Paragraph("2. Literature Survey", h1_style))
     story.append(Paragraph(
         "The following studies provide the mathematical, algorithmic, and operational foundations for recurrent neural architectures, gating mechanisms, "
-        "temporal attention alignment, log text parsing, and cloud infrastructure failure prediction. The literature establishes the trajectory from "
-        "classical RNNs to modern attention-augmented sequential architectures.",
+        "temporal attention alignment, log text parsing, and cloud infrastructure failure prediction:",
         body_style
     ))
-    story.append(Spacer(1, 4))
+    story.append(Spacer(1, 3))
 
-    # Lit survey table Part 1 (Papers 1-4)
-    lit_data_1 = [
+    lit_data = [
         [Paragraph("<b>Study</b>", body_bold), Paragraph("<b>Paper Title</b>", body_bold), Paragraph("<b>Main Contribution</b>", body_bold), Paragraph("<b>Relevance to This Project</b>", body_bold), Paragraph("<b>Ref.</b>", body_bold)],
         [
-            Paragraph("Hochreiter &<br/>Schmidhuber<br/>(1997)", body_style),
+            Paragraph("Hochreiter &<br/>Schmidhuber (1997)", body_style),
             Paragraph("Long Short-Term Memory", body_style),
             Paragraph("Introduced constant error carousels and input, output, and forget gating cells to overcome vanishing gradients in recurrent networks.", body_style),
             Paragraph("Provides the foundational recurrent memory architecture benchmarked against GRU in our sequential comparative analysis.", body_style),
@@ -438,38 +429,9 @@ def build_pdf():
             Paragraph("Replaced recurrence entirely with multi-head self-attention mechanisms in the Transformer architecture.", body_style),
             Paragraph("Informs our attention mechanism design; establishes why lightweight Attention-GRUs are preferred over heavy Transformers for small sliding windows (T=3).", body_style),
             Paragraph("[4]", body_style)
-        ]
-    ]
-    t_lit_1 = Table(lit_data_1, colWidths=[65, 105, 160, 150, 24])
-    t_lit_1.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#1E293B")),
-        ('TEXTCOLOR', (0,0), (-1,0), colors.white),
-        ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0,0), (-1,-1), 7.5),
-        ('LEADING', (0,0), (-1,-1), 9.8),
-        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#CBD5E1")),
-        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.HexColor("#F8FAFC")]),
-        ('TOPPADDING', (0,0), (-1,-1), 3),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 3),
-        ('LEFTPADDING', (0,0), (-1,-1), 4),
-        ('RIGHTPADDING', (0,0), (-1,-1), 4),
-        ('ALIGN', (-1,0), (-1,-1), 'CENTER'),
-    ]))
-    story.append(t_lit_1)
-
-    story.append(PageBreak())
-
-    # =========================================================================
-    # PAGE 5: CHAPTER 2: LITERATURE SURVEY (PART 2)
-    # =========================================================================
-    story.append(Paragraph("2. Literature Survey (Continued)", h1_style))
-    story.append(Paragraph("The comparative survey continues with foundational works in log analytics, anomaly detection, and cloud pipeline reliability:", body_style))
-    story.append(Spacer(1, 4))
-
-    lit_data_2 = [
-        [Paragraph("<b>Study</b>", body_bold), Paragraph("<b>Paper Title</b>", body_bold), Paragraph("<b>Main Contribution</b>", body_bold), Paragraph("<b>Relevance to This Project</b>", body_bold), Paragraph("<b>Ref.</b>", body_bold)],
+        ],
         [
-            Paragraph("He et al.<br/>(2016 / 2020)", body_style),
+            Paragraph("He et al.<br/>(2020)", body_style),
             Paragraph("Loghub: A Large Collection of System Log Datasets for Automated Log Analysis", body_style),
             Paragraph("Established standard benchmarks and regular expression template parsing paradigms for distributed systems and cloud platforms.", body_style),
             Paragraph("Guides our automated regex log diagnostic parser and 14 failure category mappings in pipeline_logs.json and log_analyzer.py.", body_style),
@@ -485,7 +447,7 @@ def build_pdf():
         [
             Paragraph("Zhou et al.<br/>(2021)", body_style),
             Paragraph("Informer: Beyond Efficient Transformer for Long Sequence Time-Series Forecasting", body_style),
-            Paragraph("Introduced ProbSparse attention and distillation mechanisms to handle long-sequence time-series forecasting with O(L log L) complexity.", body_style),
+            Paragraph("Introduced ProbSparse attention to handle long-sequence time-series forecasting with O(L log L) complexity.", body_style),
             Paragraph("Informs our temporal sequence design and validates why short sliding windows (T=3) converge faster with recurrent GRUs than multi-layer Transformers.", body_style),
             Paragraph("[7]", body_style)
         ],
@@ -497,59 +459,39 @@ def build_pdf():
             Paragraph("[8]", body_style)
         ]
     ]
-    t_lit_2 = Table(lit_data_2, colWidths=[65, 105, 160, 150, 24])
-    t_lit_2.setStyle(TableStyle([
+    t_lit = Table(lit_data, colWidths=[65, 105, 160, 150, 24])
+    t_lit.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#1E293B")),
         ('TEXTCOLOR', (0,0), (-1,0), colors.white),
-        ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0,0), (-1,-1), 7.5),
-        ('LEADING', (0,0), (-1,-1), 9.8),
-        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#CBD5E1")),
-        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.HexColor("#F8FAFC")]),
-        ('TOPPADDING', (0,0), (-1,-1), 4),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 4),
+        ('FONTNAME', (0,0), (-1,-1), 'Calibri'),
+        ('FONTNAME', (0,0), (-1,0), 'Calibri-Bold'),
+        ('FONTSIZE', (0,0), (-1,-1), 7.2),
+        ('LEADING', (0,0), (-1,-1), 9.2),
+        ('GRID', (0,0), (-1,-1), 0.5, c_border),
+        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, c_bg_light]),
+        ('TOPPADDING', (0,0), (-1,-1), 2.5),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 2.5),
         ('LEFTPADDING', (0,0), (-1,-1), 4),
         ('RIGHTPADDING', (0,0), (-1,-1), 4),
         ('ALIGN', (-1,0), (-1,-1), 'CENTER'),
     ]))
-    story.append(t_lit_2)
-    story.append(Spacer(1, 10))
+    story.append(t_lit)
+    story.append(Spacer(1, 4))
 
-    story.append(Paragraph("Key Insights Derived from Literature:", h2_style))
-    lit_takeaways = [
-        "<b>Recurrent Gating Efficiency:</b> Cho et al. demonstrated that GRUs achieve identical modeling capacity to LSTMs with 25% fewer gate parameters, minimizing inference overhead during per-task Airflow scheduling.",
-        "<b>Explainability via Additive Attention:</b> Bahdanau additive attention provides transparent scalar attention weights summing to 1.0, transforming opaque neural representations into auditable diagnostic evidence for engineering teams.",
-        "<b>Multi-Modal Grounding:</b> Combining quantitative numeric telemetry (CPU, RAM, latency) with qualitative execution logs (stack traces, exception keys) yields higher diagnostic fidelity than modeling either modality in isolation."
-    ]
-    for tk in lit_takeaways:
-        story.append(Paragraph(f"• &nbsp; {tk}", bullet_style))
+    story.append(Paragraph("2.1 Summary and conclusion of literature survey", h2_style))
+    story.append(Paragraph(
+        "The literature survey establishes that while sequential neural networks (LSTM, GRU) excel at temporal pattern recognition, "
+        "and attention mechanisms provide soft-alignment explainability, enterprise data platforms remain dominated by reactive, univariate threshold alerts. "
+        "This project bridges this gap by unifying multivariate numerical telemetry sliding windows with qualitative log diagnosis in a unified, "
+        "dual-head AttentionGRU architecture capable of proactive early warning and automated engineering remediation.",
+        body_style
+    ))
 
     story.append(PageBreak())
 
     # =========================================================================
-    # PAGE 6: LITERATURE SUMMARY & CHAPTER 3: RESEARCH GAP AND PROPOSED SOLUTION
+    # PAGE 5: POINT 3: RESEARCH GAP AND PROPOSED SOLUTION
     # =========================================================================
-    story.append(Paragraph("2.1 Summary of literature", h2_style))
-    story.append(Paragraph(
-        "The literature survey reveals a distinct technical evolution in automated system reliability. Early research relied on static heuristic thresholds "
-        "and rule engines, which suffer from excessive false alarms and inability to detect complex non-linear failure precursors. The advent of deep sequential "
-        "modeling (Hochreiter & Schmidhuber, Cho et al.) enabled systems to capture long-term temporal dependencies across successive observations. "
-        "Bahdanau attention introduced dynamic soft-alignment, enabling neural models to explain which temporal steps influence predictions. Recent cloud "
-        "reliability studies (Wang et al., Du et al.) demonstrate that enterprise pipelines exhibit degradation over several preceding executions before hard crashes. "
-        "However, most modern enterprise monitoring systems remain strictly reactive, post-mortem, and univariate.",
-        body_style
-    ))
-
-    story.append(Paragraph("2.2 Literature survey conclusion", h2_style))
-    story.append(Paragraph(
-        "The reviewed literature substantiates the necessity of a modular, explainable, and multi-task sequential neural framework. While existing research "
-        "extensively investigates log parsing or univariate anomaly detection, there is a clear absence of production-ready systems that simultaneously predict "
-        "next-run failure risk, attribute root cause subsystems, explain temporal attribution via attention weights, and link numeric telemetry relationally "
-        "to natural language remediation strategies. This project addresses this exact frontier for modern enterprise ETL data pipelines.",
-        body_style
-    ))
-    story.append(Spacer(1, 4))
-
     story.append(Paragraph("3. Research Gap and Proposed Solution", h1_style))
     story.append(Paragraph("3.1 Identified problem areas", h2_style))
     gaps = [
@@ -560,6 +502,7 @@ def build_pdf():
     ]
     for g in gaps:
         story.append(Paragraph(f"• &nbsp; {g}", bullet_style))
+    story.append(Spacer(1, 4))
 
     story.append(Paragraph("3.2 Proposed solution", h2_style))
     story.append(Paragraph(
@@ -571,12 +514,8 @@ def build_pdf():
         "(5) An interactive Streamlit Community Cloud web dashboard with automated engineering remediation cards and animated pipeline inspection.",
         body_style
     ))
+    story.append(Spacer(1, 4))
 
-    story.append(PageBreak())
-
-    # =========================================================================
-    # PAGE 7: 3.3 EXPECTED CONTRIBUTION & CHAPTER 4: DATASET / KNOWLEDGE BASE
-    # =========================================================================
     story.append(Paragraph("3.3 Expected contribution", h2_style))
     contribs = [
         "<b>Dual-Head Multi-Task Neural Architecture:</b> A unified PyTorch model performing joint binary failure risk prediction ($P(\\text{Failure}) \\in [0, 1]$) and 5-class subsystem attribution with shared temporal attention representations.",
@@ -587,8 +526,12 @@ def build_pdf():
     ]
     for c in contribs:
         story.append(Paragraph(f"• &nbsp; {c}", bullet_style))
-    story.append(Spacer(1, 4))
 
+    story.append(PageBreak())
+
+    # =========================================================================
+    # PAGE 6: POINT 4: DATASET / KNOWLEDGE BASE DESCRIPTION
+    # =========================================================================
     story.append(Paragraph("4. Dataset / Knowledge Base Description", h1_style))
     story.append(Paragraph("4.1 Development corpus (Quantitative Telemetry)", h2_style))
     story.append(Paragraph(
@@ -613,23 +556,20 @@ def build_pdf():
     t_tel.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#1E293B")),
         ('TEXTCOLOR', (0,0), (-1,0), colors.white),
-        ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+        ('FONTNAME', (0,0), (-1,-1), 'Calibri'),
+        ('FONTNAME', (0,0), (-1,0), 'Calibri-Bold'),
         ('FONTSIZE', (0,0), (-1,-1), 7.2),
         ('LEADING', (0,0), (-1,-1), 9.2),
-        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#CBD5E1")),
-        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.HexColor("#F8FAFC")]),
-        ('TOPPADDING', (0,0), (-1,-1), 3),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 3),
+        ('GRID', (0,0), (-1,-1), 0.5, c_border),
+        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, c_bg_light]),
+        ('TOPPADDING', (0,0), (-1,-1), 2.5),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 2.5),
         ('LEFTPADDING', (0,0), (-1,-1), 5),
         ('RIGHTPADDING', (0,0), (-1,-1), 5),
     ]))
     story.append(t_tel)
+    story.append(Spacer(1, 4))
 
-    story.append(PageBreak())
-
-    # =========================================================================
-    # PAGE 8: DATASET (CONT.) & CHAPTER 5: DATA PREPROCESSING TECHNIQUES
-    # =========================================================================
     story.append(Paragraph("4.2 Qualitative Airflow Log Knowledge Base", h2_style))
     story.append(Paragraph(
         "Complementing the quantitative telemetry is <code>pipeline_logs.json</code>, a knowledge base containing 450 rich, semi-structured Airflow "
@@ -646,8 +586,19 @@ def build_pdf():
         "to supervise the multi-class root cause head and populate instant diagnostic remediation reports upon alert triggering.",
         body_style
     ))
-    story.append(Spacer(1, 4))
 
+    story.append(Paragraph("4.4 Data governance and leakage prevention", h2_style))
+    story.append(Paragraph(
+        "Strict chronological sorting guarantees that telemetry sequences obey causal temporal order. Partitioning into train, validation, and test subsets "
+        "is performed chronologically without random shuffling, ensuring that the model never evaluates historical runs using future statistical properties.",
+        body_style
+    ))
+
+    story.append(PageBreak())
+
+    # =========================================================================
+    # PAGE 7: POINT 5: DATA PREPROCESSING TECHNIQUES
+    # =========================================================================
     story.append(Paragraph("5. Data Preprocessing Techniques", h1_style))
     story.append(Paragraph("5.1 Telemetry ingestion and feature extraction", h2_style))
     story.append(Paragraph(
@@ -680,11 +631,20 @@ def build_pdf():
         "This mathematical safeguard guarantees zero forward-looking bias, ensuring that the model's reported accuracy is completely representative of real-world operational inference.",
         body_style
     ))
+    story.append(Spacer(1, 4))
+
+    story.append(Paragraph("5.4 Chronological train / validation / test partitioning", h2_style))
+    story.append(Paragraph(
+        "The 450 historical runs are split chronologically into three non-overlapping partitions: "
+        "<b>Training Set</b> (runs 1–315, 70%), <b>Validation Set</b> (runs 316–382, 15%), and <b>Test Set</b> (runs 383–450, 15%). "
+        "This mirrors real-world deployment where a model trained on historical data is deployed to predict strictly future unseen DAG executions.",
+        body_style
+    ))
 
     story.append(PageBreak())
 
     # =========================================================================
-    # PAGE 9: CHAPTER 6: PROPOSED METHODOLOGY AND SYSTEM ARCHITECTURE
+    # PAGE 8: POINT 6: PROPOSED METHODOLOGY AND SYSTEM ARCHITECTURE
     # =========================================================================
     story.append(Paragraph("6. Proposed Methodology and System Architecture", h1_style))
     story.append(Paragraph("6.1 End-to-end workflow", h2_style))
@@ -706,7 +666,7 @@ def build_pdf():
     ]
     for s in steps:
         story.append(Paragraph(s, bullet_style))
-    story.append(Spacer(1, 4))
+    story.append(Spacer(1, 3))
 
     story.append(Paragraph("6.2 System Modules and Functional Roles", h2_style))
     modules_data = [
@@ -723,13 +683,14 @@ def build_pdf():
     t_mod.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#1E293B")),
         ('TEXTCOLOR', (0,0), (-1,0), colors.white),
-        ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+        ('FONTNAME', (0,0), (-1,-1), 'Calibri'),
+        ('FONTNAME', (0,0), (-1,0), 'Calibri-Bold'),
         ('FONTSIZE', (0,0), (-1,-1), 7.2),
         ('LEADING', (0,0), (-1,-1), 9.2),
-        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#CBD5E1")),
-        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.HexColor("#F8FAFC")]),
-        ('TOPPADDING', (0,0), (-1,-1), 3),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 3),
+        ('GRID', (0,0), (-1,-1), 0.5, c_border),
+        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, c_bg_light]),
+        ('TOPPADDING', (0,0), (-1,-1), 2.5),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 2.5),
         ('LEFTPADDING', (0,0), (-1,-1), 5),
         ('RIGHTPADDING', (0,0), (-1,-1), 5),
     ]))
@@ -738,45 +699,26 @@ def build_pdf():
     story.append(PageBreak())
 
     # =========================================================================
-    # PAGE 10: ATTENTION GROUNDING & CHAPTER 7: DEEP LEARNING MODEL DESIGN
+    # PAGE 9: POINT 7: DEEP LEARNING MODEL DESIGN AND JUSTIFICATION
     # =========================================================================
-    story.append(Paragraph("6.3 Temporal attention grounding and Explainable AI (XAI)", h2_style))
-    story.append(Paragraph(
-        "A critical innovation of this architecture is explainability. Black-box recurrent neural networks provide no rationale for their predictions, "
-        "undermining trust among operational engineering teams. By introducing Bahdanau additive attention, the system computes scalar attention weights "
-        "$\\alpha_{t-3}, \\alpha_{t-2}, \\alpha_{t-1}$ strictly constrained by $\\sum_{k=1}^3 \\alpha_{t-k} = 1.0$. If $\\alpha_{t-3}$ is dominant (e.g., 68%), "
-        "the model indicates that the failure precursor originated 2 runs prior (e.g., uncollected Spark shuffle partitions). Conversely, if $\\alpha_{t-1}$ dominates, "
-        "an acute, sudden spike triggered the risk. This diagnostic visibility enables targeted investigation rather than blind pipeline restarts.",
-        body_style
-    ))
-    story.append(Spacer(1, 4))
-
     story.append(Paragraph("7. Deep Learning Model Design and Justification", h1_style))
     story.append(Paragraph("7.1 Mathematical formulations of AttentionGRU", h2_style))
     story.append(Paragraph(
         "The AttentionGRU network consists of a recurrent GRU backbone, a Bahdanau temporal additive attention layer, a representation fusion layer, "
-        "and two parallel prediction heads. The mathematical formulations governing forward propagation are as follows:",
+        "and two parallel prediction heads:",
         body_style
     ))
 
     story.append(Paragraph("A. Recurrent Gated Recurrent Unit (GRU) Encoding:", h3_style))
     story.append(Paragraph(
-        "Given input sequence $X = [x_1, x_2, x_3]$ with $x_t \\in \\mathbb{R}^4$, the GRU computes hidden state $h_t \\in \\mathbb{R}^{24}$ via reset ($r_t$) and update ($z_t$) gates:",
-        body_style
-    ))
-    story.append(Paragraph(
         "z_t = \\sigma(W_z x_t + U_z h_{t-1} + b_z) \\quad \\text{[Update Gate]}<br/>"
         "r_t = \\sigma(W_r x_t + U_r h_{t-1} + b_r) \\quad \\text{[Reset Gate]}<br/>"
         "\\tilde{h}_t = \\tanh(W_h x_t + U_h (r_t \\odot h_{t-1}) + b_h) \\quad \\text{[Candidate Hidden State]}<br/>"
-        "h_t = (1 - z_t) \\odot h_{t-1} + z_t \\odot \\tilde{h}_t \\quad \\text{[Final Hidden State]}",
+        "h_t = (1 - z_t) \\odot h_{t-1} + z_t \\odot \\tilde{h}_t \\quad \\text{[Final Hidden State } h_t \\in \\mathbb{R}^{24}\\text{]}",
         code_style
     ))
 
     story.append(Paragraph("B. Bahdanau Additive Temporal Attention:", h3_style))
-    story.append(Paragraph(
-        "The attention mechanism scores each hidden state $h_t$ through a feed-forward alignment layer with learnable parameters $W_a \\in \\mathbb{R}^{16 \\times 24}$, $b_a \\in \\mathbb{R}^{16}$, and $v \\in \\mathbb{R}^{16}$:",
-        body_style
-    ))
     story.append(Paragraph(
         "e_t = v^T \\tanh(W_a h_t + b_a) \\quad \\text{[Alignment Energy Score]}<br/>"
         "\\alpha_t = \\frac{\\exp(e_t)}{\\sum_{k=1}^3 \\exp(e_k)} \\quad \\text{[Softmax Attention Weight, } \\sum \\alpha_t = 1.0\\text{]}<br/>"
@@ -786,81 +728,40 @@ def build_pdf():
 
     story.append(Paragraph("C. Multi-Task Feature Fusion and Dual-Head Predictions:", h3_style))
     story.append(Paragraph(
-        "The context vector $c$ is concatenated with the final temporal state $h_3$ and projected through a dense fusion layer with ReLU activation and dropout ($p=0.2$):",
-        body_style
-    ))
-    story.append(Paragraph(
         "f = \\text{Dropout}(\\text{ReLU}(W_f [c; h_3] + b_f)) \\in \\mathbb{R}^{24}<br/>"
         "\\hat{y}_{\\text{risk}} = \\sigma(W_{\\text{risk}} f + b_{\\text{risk}}) \\in [0, 1] \\quad \\text{[Head 1: Binary Risk Probability]}<br/>"
         "\\hat{y}_{\\text{stage}} = \\text{Softmax}(W_{\\text{stage}} f + b_{\\text{stage}}) \\in \\mathbb{R}^5 \\quad \\text{[Head 2: 5-Stage Attribution Distribution]}",
         code_style
     ))
 
-    story.append(PageBreak())
-
-    # =========================================================================
-    # PAGE 11: 7.2 MODEL JUSTIFICATION & MULTI-TASK TRAINING DETAILS
-    # =========================================================================
     story.append(Paragraph("7.2 Recurrent backbone justification (Why GRU vs LSTM vs Transformers)", h2_style))
     story.append(Paragraph(
-        "A central design decision was selecting the recurrent gating architecture. While LSTMs are popular for long sequential problems, our empirical ablation "
-        "and architectural analysis demonstrate that GRUs are mathematically superior for short-horizon data pipeline telemetry (<i>T = 3</i>):",
+        "AttentionGRU contains 4,385 parameters compared to 5,825 for AttentionLSTM (a 24.7% reduction). On short telemetry sequences (<i>T = 3</i>), "
+        "GRU converges faster, eliminates vanishing gradients, reduces inference latency to 1.2 ms (vs 1.8 ms for LSTM), and avoids the severe overfitting "
+        "and computational bloat (>100K params) associated with Transformer self-attention.",
         body_style
     ))
-    backbone_reasons = [
-        "<b>Parameter Efficiency:</b> AttentionGRU contains 4,385 parameters compared to 5,825 for AttentionLSTM (a 24.7% reduction). On small-to-medium telemetry corpora (450 runs), fewer parameters drastically reduce overfitting risks.",
-        "<b>Inference Latency:</b> GRU computes only 2 gate activations per step (reset and update) compared to 3 in LSTM (input, forget, output) plus separate cell state manipulation. AttentionGRU achieves 1.2 ms CPU inference latency vs 1.8 ms for LSTM, critical for real-time scheduling hooks.",
-        "<b>Recurrent vs Transformer:</b> While Transformers excel at long-context NLP ($L > 512$), self-attention across short horizons ($T = 3$) introduces excessive parameter bloat ($>100\\text{K}$ parameters), requires positional encodings, and struggles to converge without massive pretraining datasets."
-    ]
-    for br in backbone_reasons:
-        story.append(Paragraph(f"• &nbsp; {br}", bullet_style))
-    story.append(Spacer(1, 4))
 
     story.append(Paragraph("7.3 Multi-task loss formulation", h2_style))
     story.append(Paragraph(
-        "The model is optimized end-to-end using a composite multi-task loss function balancing binary risk prediction and multi-class subsystem attribution:",
-        body_style
-    ))
-    story.append(Paragraph(
-        "\\mathcal{L}_{\\text{total}} = \\lambda \\mathcal{L}_{\\text{BCE}}(y_{\\text{risk}}, \\hat{y}_{\\text{risk}}) + (1 - \\lambda) \\mathcal{L}_{\\text{CE}}(y_{\\text{stage}}, \\hat{y}_{\\text{stage}})",
+        "\\mathcal{L}_{\\text{total}} = \\lambda \\mathcal{L}_{\\text{BCE}}(y_{\\text{risk}}, \\hat{y}_{\\text{risk}}) + (1 - \\lambda) \\mathcal{L}_{\\text{CE}}(y_{\\text{stage}}, \\hat{y}_{\\text{stage}}) \\quad (\\lambda = 0.5)",
         code_style
     ))
+
+    story.append(Paragraph("7.4 Model training status and selection criteria", h2_style))
     story.append(Paragraph(
-        "where $\\lambda = 0.5$ balances the gradient updates equally between the binary failure detector and the 5-class stage attribution classifier. "
-        "Joint training acts as a natural regularizer, forcing the shared GRU representation $h_t$ to encode both global system instability and stage-specific degradation patterns.",
+        "The AttentionGRU model was <b>trained from scratch in PyTorch 2.6</b> over 60 epochs with Adam optimizer, weight decay ($10^{-4}$), and early stopping. "
+        "Selection was governed by ROC-AUC (>0.90), F1-Score (>0.85), CPU inference latency (<5.0 ms), and intrinsic Explainable AI interpretability.",
         body_style
     ))
-
-    story.append(Paragraph("7.4 Is a model trained in this project?", h2_style))
-    story.append(Paragraph(
-        "<b>Yes.</b> Unlike projects relying on pre-trained hosted API endpoints (e.g., GPT, Gemini), the AttentionGRU deep learning model in this project was "
-        "<b>architected, coded, and trained from scratch</b> using PyTorch 2.6. Training ran for 60 epochs using the Adam optimizer with weight decay ($10^{-4}$), "
-        "gradient clipping at 1.0, and <code>ReduceLROnPlateau</code> learning rate scheduling. The trained weights are saved in <code>models/best_attention_model.pth</code>.",
-        body_style
-    ))
-
-    story.append(Paragraph("7.5 Model selection criteria", h2_style))
-    criteria = [
-        "<b>High Discriminative Power:</b> Area Under the ROC Curve (ROC-AUC) > 0.90 on strictly unseen chronological test data.",
-        "<b>Precision-Recall Balance:</b> F1-Score > 0.85 on the minority failure class (10.2% base-rate).",
-        "<b>Low Inference Latency:</b> CPU evaluation time < 5.0 ms per sliding window to prevent Airflow scheduling bottlenecks.",
-        "<b>Intrinsic Explainability:</b> Direct mathematical extraction of temporal importance weights without relying on post-hoc perturbation methods (e.g., LIME, SHAP)."
-    ]
-    for cr in criteria:
-        story.append(Paragraph(f"• &nbsp; {cr}", bullet_style))
 
     story.append(PageBreak())
 
     # =========================================================================
-    # PAGE 12: CHAPTER 8: IMPLEMENTATION DETAILS, TOOLS AND TECHNOLOGIES
+    # PAGE 10: POINT 8: IMPLEMENTATION DETAILS, TOOLS AND TECHNOLOGIES
     # =========================================================================
     story.append(Paragraph("8. Implementation Details, Tools and Technologies", h1_style))
     story.append(Paragraph("8.0 Enterprise technology stack", h2_style))
-    story.append(Paragraph(
-        "The system is implemented using industry-standard open-source data engineering and machine learning technologies:",
-        body_style
-    ))
-    
     tech_data = [
         [Paragraph("<b>Technology</b>", body_bold), Paragraph("<b>Version</b>", body_bold), Paragraph("<b>Architectural Role in System</b>", body_bold), Paragraph("<b>Implementation Details</b>", body_bold)],
         ["Python", "3.11+", "Core programming language", "Underpins all ETL dags, feature pipelines, model scripts, and Streamlit UI."],
@@ -878,18 +779,19 @@ def build_pdf():
     t_tech.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#1E293B")),
         ('TEXTCOLOR', (0,0), (-1,0), colors.white),
-        ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+        ('FONTNAME', (0,0), (-1,-1), 'Calibri'),
+        ('FONTNAME', (0,0), (-1,0), 'Calibri-Bold'),
         ('FONTSIZE', (0,0), (-1,-1), 7.2),
         ('LEADING', (0,0), (-1,-1), 9.2),
-        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#CBD5E1")),
-        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.HexColor("#F8FAFC")]),
-        ('TOPPADDING', (0,0), (-1,-1), 3),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 3),
+        ('GRID', (0,0), (-1,-1), 0.5, c_border),
+        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, c_bg_light]),
+        ('TOPPADDING', (0,0), (-1,-1), 2.5),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 2.5),
         ('LEFTPADDING', (0,0), (-1,-1), 5),
         ('RIGHTPADDING', (0,0), (-1,-1), 5),
     ]))
     story.append(t_tech)
-    story.append(Spacer(1, 6))
+    story.append(Spacer(1, 4))
 
     story.append(Paragraph("8.1 Repository directory structure", h2_style))
     repo_tree = """data-pipeline-failure-prediction-system/
@@ -903,8 +805,7 @@ def build_pdf():
 │   │   ├── pipeline_telemetry.csv     # 450 historical Airflow runs (7 metrics + log_id)
 │   │   └── pipeline_logs.json         # 450 raw task execution traces
 │   └── samples/                       # Calibrated CSV datasets for examiner evaluation
-├── models/
-│   └── best_attention_model.pth       # Trained AttentionGRU PyTorch checkpoint
+├── models/best_attention_model.pth    # Trained AttentionGRU PyTorch checkpoint
 ├── src/
 │   ├── data/log_analyzer.py           # Natural text log diagnostic parser (14 regex signatures)
 │   ├── features/sequence_generator.py # Zero-leakage temporal sliding window engine
@@ -912,25 +813,19 @@ def build_pdf():
 └── docs/                              # Technical reports, team dossier, and figures"""
     story.append(Paragraph(repo_tree.replace(" ", "&nbsp;").replace("\n", "<br/>"), code_style))
 
+    story.append(Paragraph("8.2 Security, reliability and transaction idempotency", h2_style))
+    story.append(Paragraph(
+        "In Stage 4 (PostgreSQL Load), before inserting processed daily records, the task executes <code>DELETE FROM users_daily WHERE dt = 'today'</code> "
+        "inside a single ACID transaction block. If an execution terminates abruptly or is retried 10 times, the warehouse table remains 100% consistent with zero duplicate rows. "
+        "All secrets are managed through environment variables without hardcoded credentials.",
+        body_style
+    ))
+
     story.append(PageBreak())
 
     # =========================================================================
-    # PAGE 13: 8.2 SECURITY & CHAPTER 9: MODEL TRAINING AND OPTIMIZATION
+    # PAGE 11: POINT 9: MODEL TRAINING AND OPTIMIZATION STRATEGIES
     # =========================================================================
-    story.append(Paragraph("8.2 Security, reliability and transaction idempotency", h2_style))
-    story.append(Paragraph(
-        "Enterprise data systems must ensure absolute consistency in the face of pipeline failures. The project implements three operational safeguards:",
-        body_style
-    ))
-    sec_points = [
-        "<b>ACID Warehouse Load Idempotency:</b> In Stage 4 (PostgreSQL Load), before inserting processed daily records, the task executes <code>DELETE FROM users_daily WHERE dt = 'today'</code> inside a single ACID transaction block. If an execution terminates abruptly or is retried 10 times, the warehouse table remains 100% consistent with zero duplicate rows.",
-        "<b>Zero Lookahead Normalization:</b> The feature scaling pipeline enforces strict chronological isolation. The StandardScaler fitted on training records cannot observe future validation or test observations.",
-        "<b>Environment Secret Segregation:</b> Database credentials, S3 access tokens, and API secrets are loaded exclusively via environment variables and Streamlit <code>st.secrets</code>, avoiding hard-coded plaintext keys."
-    ]
-    for sp in sec_points:
-        story.append(Paragraph(f"• &nbsp; {sp}", bullet_style))
-    story.append(Spacer(1, 4))
-
     story.append(Paragraph("9. Model Training and Optimization Strategies", h1_style))
     story.append(Paragraph("9.1 Training strategy", h2_style))
     story.append(Paragraph(
@@ -942,7 +837,7 @@ def build_pdf():
         body_style
     ))
 
-    story.append(Paragraph("9.2 Optimization and hyperparameter ablation sweeps", h2_style))
+    story.append(Paragraph("9.2 Hyperparameter ablation sweeps", h2_style))
     story.append(Paragraph(
         "Systematic ablation sweeps were executed across temporal sliding window lengths $T \\in \\{3, 5, 7, 10\\}$ and hidden dimensions $D \\in \\{12, 16, 24, 32, 64\\}$:",
         body_style
@@ -961,12 +856,13 @@ def build_pdf():
     t_abl.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#1E293B")),
         ('TEXTCOLOR', (0,0), (-1,0), colors.white),
-        ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+        ('FONTNAME', (0,0), (-1,-1), 'Calibri'),
+        ('FONTNAME', (0,0), (-1,0), 'Calibri-Bold'),
         ('FONTSIZE', (0,0), (-1,-1), 7.5),
         ('LEADING', (0,0), (-1,-1), 9.5),
-        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#CBD5E1")),
-        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.HexColor("#EFF6FF"), colors.white, colors.white, colors.white, colors.white]),
-        ('FONTNAME', (0,2), (-1,2), 'Helvetica-Bold'),
+        ('GRID', (0,0), (-1,-1), 0.5, c_border),
+        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, c_accent_bg, colors.white, colors.white, colors.white, colors.white]),
+        ('FONTNAME', (0,2), (-1,2), 'Calibri-Bold'),
         ('TOPPADDING', (0,0), (-1,-1), 3),
         ('BOTTOMPADDING', (0,0), (-1,-1), 3),
         ('ALIGN', (0,0), (-1,-1), 'CENTER'),
@@ -979,11 +875,6 @@ def build_pdf():
         body_style
     ))
 
-    story.append(PageBreak())
-
-    # =========================================================================
-    # PAGE 14: 9.3 REPRODUCIBILITY & CHAPTER 10: EXPERIMENTAL RESULTS
-    # =========================================================================
     story.append(Paragraph("9.3 Reproducibility", h2_style))
     story.append(Paragraph(
         "To ensure complete academic reproducibility, deterministic random seeds (<code>seed = 42</code>) were set across PyTorch, NumPy, and Python standard libraries. "
@@ -991,8 +882,12 @@ def build_pdf():
         "<code>run_week3.py</code> (reproduces multi-task loss training and ablation sweeps), and <code>run_week4.py</code> (verifies Streamlit application components and evaluation metrics).",
         body_style
     ))
-    story.append(Spacer(1, 4))
 
+    story.append(PageBreak())
+
+    # =========================================================================
+    # PAGE 12: POINT 10: EXPERIMENTAL RESULTS AND EVALUATION
+    # =========================================================================
     story.append(Paragraph("10. Experimental Results and Performance Evaluation", h1_style))
     story.append(Paragraph("10.1 Evaluation dataset and chronological split", h2_style))
     story.append(Paragraph(
@@ -1003,11 +898,6 @@ def build_pdf():
     ))
 
     story.append(Paragraph("10.2 Binary prediction metrics (Head 1: Risk Probability)", h2_style))
-    story.append(Paragraph(
-        "Model discrimination was evaluated using standard classification metrics tailored for imbalanced time series:",
-        body_style
-    ))
-    
     bin_metrics = [
         [Paragraph("<b>Evaluation Metric</b>", body_bold), Paragraph("<b>Formula / Definition</b>", body_bold), Paragraph("<b>AttentionGRU Result</b>", body_bold), Paragraph("<b>Operational Interpretation</b>", body_bold)],
         ["ROC-AUC", "Area Under Receiver Operating Characteristic", "0.942", "Outstanding ranking discrimination between failing and healthy runs."],
@@ -1021,29 +911,21 @@ def build_pdf():
     t_bin.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#1E293B")),
         ('TEXTCOLOR', (0,0), (-1,0), colors.white),
-        ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+        ('FONTNAME', (0,0), (-1,-1), 'Calibri'),
+        ('FONTNAME', (0,0), (-1,0), 'Calibri-Bold'),
         ('FONTSIZE', (0,0), (-1,-1), 7.2),
         ('LEADING', (0,0), (-1,-1), 9.2),
-        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#CBD5E1")),
-        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.HexColor("#F8FAFC")]),
-        ('TOPPADDING', (0,0), (-1,-1), 3),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 3),
+        ('GRID', (0,0), (-1,-1), 0.5, c_border),
+        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, c_bg_light]),
+        ('TOPPADDING', (0,0), (-1,-1), 2.5),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 2.5),
         ('LEFTPADDING', (0,0), (-1,-1), 5),
         ('RIGHTPADDING', (0,0), (-1,-1), 5),
     ]))
     story.append(t_bin)
+    story.append(Spacer(1, 3))
 
-    story.append(PageBreak())
-
-    # =========================================================================
-    # PAGE 15: 10.3 ROOT CAUSE METRICS, LATENCY & OPERATIONAL CALIBRATION
-    # =========================================================================
     story.append(Paragraph("10.3 Root cause multi-class attribution metrics (Head 2: Subsystems)", h2_style))
-    story.append(Paragraph(
-        "Head 2 assigns the predicted root cause across 5 pipeline stages. The multi-class confusion matrix and stage-wise metrics demonstrate high fidelity:",
-        body_style
-    ))
-    
     stage_metrics = [
         [Paragraph("<b>Pipeline Subsystem Stage</b>", body_bold), Paragraph("<b>Support (Test)</b>", body_bold), Paragraph("<b>Precision</b>", body_bold), Paragraph("<b>Recall</b>", body_bold), Paragraph("<b>F1-Score</b>", body_bold), Paragraph("<b>Primary Failure Modes Detected</b>", body_bold)],
         ["Stage 1: REST Ingestion", "12", "0.917", "0.917", "0.917", "HTTP 500 Server Error, Rate Limit 429, Socket Timeout"],
@@ -1056,47 +938,33 @@ def build_pdf():
     t_stage.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#1E293B")),
         ('TEXTCOLOR', (0,0), (-1,0), colors.white),
-        ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+        ('FONTNAME', (0,0), (-1,-1), 'Calibri'),
+        ('FONTNAME', (0,0), (-1,0), 'Calibri-Bold'),
         ('FONTSIZE', (0,0), (-1,-1), 7.2),
         ('LEADING', (0,0), (-1,-1), 9.2),
-        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#CBD5E1")),
-        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.HexColor("#F8FAFC")]),
-        ('TOPPADDING', (0,0), (-1,-1), 3),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 3),
+        ('GRID', (0,0), (-1,-1), 0.5, c_border),
+        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, c_bg_light]),
+        ('TOPPADDING', (0,0), (-1,-1), 2.5),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 2.5),
         ('LEFTPADDING', (0,0), (-1,-1), 5),
         ('RIGHTPADDING', (0,0), (-1,-1), 5),
     ]))
     story.append(t_stage)
-    story.append(Spacer(1, 4))
+    story.append(Spacer(1, 3))
 
-    story.append(Paragraph("10.4 Efficiency and inference latency metrics", h2_style))
+    story.append(Paragraph("10.4 Efficiency metrics & operational risk threshold calibration", h2_style))
     story.append(Paragraph(
-        "On single-core standard CPU hardware (Intel Core i7 / AMD Ryzen), AttentionGRU evaluates an input tensor in <b>1.2 ms</b>. "
-        "The compiled PyTorch model weights occupy only <b>17.5 KB</b> of storage and consume <b>4.2 MB</b> of memory during inference. "
-        "This minimal footprint enables the model to run directly within lightweight Airflow worker containers without dedicated GPU accelerators.",
+        "On CPU hardware, AttentionGRU evaluates an input tensor in <b>1.2 ms</b> with a <b>17.5 KB</b> weight footprint. "
+        "Given the ~10% baseline failure rate in production pipelines, a predicted risk of <b>52.4%</b> represents a <b>5.2x odds ratio increase</b> over baseline, "
+        "placing it in the 99.8th percentile of historical severity. Operational thresholds are calibrated as: "
+        "<b>Nominal (<20%)</b> [Green], <b>Elevated (20-40%)</b> [Amber], and <b>Critical High Risk (>=40%)</b> [Red].",
         body_style
     ))
-
-    story.append(Paragraph("10.5 Results discussion & operational risk threshold calibration", h2_style))
-    story.append(Paragraph(
-        "A critical viva defense discussion centers on risk probability calibration. In our evaluation dataset (and real-world production data platforms), "
-        "the baseline failure rate is approximately 10%. When AttentionGRU outputs a predicted risk of <b>52.4%</b>, examiners might question why the score is not 99%. "
-        "Mathematically, a 52.4% predicted probability represents a <b>5.2x odds ratio increase over the baseline prior</b>. In an imbalanced operational domain, "
-        "a 52.4% risk score places the run in the 99.8th percentile of historical severity. Consequently, the operational alert thresholds are calibrated as:",
-        body_style
-    ))
-    tiers = [
-        "<b>Nominal Risk (< 20.0%):</b> Green badge. Pipeline health is optimal; normal scheduling proceeds.",
-        "<b>Elevated Risk (20.0% - 39.9%):</b> Amber badge. Early warning advisory; worker memory and API latency monitored.",
-        "<b>Critical High Risk (>= 40.0%):</b> Red badge. Imminent failure danger; automatic engineering remediation card triggered."
-    ]
-    for tr in tiers:
-        story.append(Paragraph(f"• &nbsp; {tr}", bullet_style))
 
     story.append(PageBreak())
 
     # =========================================================================
-    # PAGE 16: CHAPTER 11: COMPARATIVE ANALYSIS WITH EXISTING MODELS
+    # PAGE 13: POINT 11: COMPARATIVE ANALYSIS WITH EXISTING MODELS
     # =========================================================================
     story.append(Paragraph("11. Comparative Analysis with Existing Models", h1_style))
     story.append(Paragraph("11.0 Benchmark comparison against competitive baselines", h2_style))
@@ -1117,18 +985,19 @@ def build_pdf():
     t_comp.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#1E293B")),
         ('TEXTCOLOR', (0,0), (-1,0), colors.white),
-        ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+        ('FONTNAME', (0,0), (-1,-1), 'Calibri'),
+        ('FONTNAME', (0,0), (-1,0), 'Calibri-Bold'),
         ('FONTSIZE', (0,0), (-1,-1), 7.5),
         ('LEADING', (0,0), (-1,-1), 9.5),
-        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#CBD5E1")),
-        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.HexColor("#EFF6FF"), colors.white, colors.white, colors.white, colors.HexColor("#F8FAFC")]),
-        ('FONTNAME', (0,1), (-1,1), 'Helvetica-Bold'),
+        ('GRID', (0,0), (-1,-1), 0.5, c_border),
+        ('ROWBACKGROUNDS', (0,1), (-1,-1), [c_accent_bg, colors.white, colors.white, colors.white, c_bg_light]),
+        ('FONTNAME', (0,1), (-1,1), 'Calibri-Bold'),
         ('TOPPADDING', (0,0), (-1,-1), 3),
         ('BOTTOMPADDING', (0,0), (-1,-1), 3),
         ('ALIGN', (1,0), (-1,-1), 'CENTER'),
     ]))
     story.append(t_comp)
-    story.append(Spacer(1, 6))
+    story.append(Spacer(1, 4))
 
     story.append(Paragraph("11.1 Comparative discussion", h2_style))
     comp_points = [
@@ -1142,7 +1011,7 @@ def build_pdf():
     story.append(PageBreak())
 
     # =========================================================================
-    # PAGE 17: CHAPTER 12: SCREENSHOTS — TAB 1
+    # PAGE 14: POINT 12: APPLICATION SCREENSHOTS (TAB 1)
     # =========================================================================
     story.append(Paragraph("12. Application Screenshots and Working Demonstration", h1_style))
     story.append(Paragraph("This section presents genuine screenshots captured from the live deployed Streamlit application at: <font color='#1D4ED8'><u>https://data-pipeline-failure-prediction-system-6pzkxs3w9kjrhqqkyuiz3o.streamlit.app/</u></font>", body_style))
@@ -1151,53 +1020,53 @@ def build_pdf():
     # Figure 12.1
     img_tab1_path = os.path.join(FIGURES_DIR, "tab1_live_risk_monitor.png")
     if os.path.exists(img_tab1_path):
-        story.append(Image(img_tab1_path, width=420, height=210))
+        story.append(Image(img_tab1_path, width=410, height=205))
         story.append(Paragraph("Figure 12.1 — Live Risk Monitor & Temporal Attention Weights (Tab 1)", caption_style))
-    story.append(Spacer(1, 6))
+    story.append(Spacer(1, 4))
 
     # Figure 12.2
     img_remed_path = os.path.join(FIGURES_DIR, "tab1_dynamic_remediation_card.png")
     if os.path.exists(img_remed_path):
-        story.append(Image(img_remed_path, width=420, height=210))
+        story.append(Image(img_remed_path, width=410, height=205))
         story.append(Paragraph("Figure 12.2 — Dynamic Operational Root Cause & Actionable Engineering Remediation Card (Tab 1)", caption_style))
 
     story.append(PageBreak())
 
     # =========================================================================
-    # PAGE 18: CHAPTER 12: SCREENSHOTS — TAB 2 (SIMULATOR & BATCH CSV)
+    # PAGE 15: POINT 12: APPLICATION SCREENSHOTS (TAB 2 SIMULATOR & BATCH CSV)
     # =========================================================================
-    story.append(Paragraph("12. Application Screenshots (Continued — Tab 2)", h1_style))
+    story.append(Paragraph("12. Application Screenshots (Continued — Tab 2 Simulator & CSV)", h1_style))
     story.append(Paragraph("Tab 2 provides interactive What-If telemetry simulation presets and batch CSV file evaluation:", body_style))
     story.append(Spacer(1, 4))
 
     # Figure 12.3
     img_whatif_path = os.path.join(FIGURES_DIR, "tab2_whatif_preset_leak.png")
     if os.path.exists(img_whatif_path):
-        story.append(Image(img_whatif_path, width=420, height=210))
+        story.append(Image(img_whatif_path, width=410, height=205))
         story.append(Paragraph("Figure 12.3 — What-If Simulator with Telemetry Sliders & Preset Failure Profiles (Tab 2)", caption_style))
-    story.append(Spacer(1, 6))
+    story.append(Spacer(1, 4))
 
     # Figure 12.4
     img_csv_path = os.path.join(FIGURES_DIR, "tab2_csv_batch_high_risk_evaluated.png")
     if os.path.exists(img_csv_path):
-        story.append(Image(img_csv_path, width=420, height=210))
+        story.append(Image(img_csv_path, width=410, height=205))
         story.append(Paragraph("Figure 12.4 — Batch CSV Telemetry File Evaluation with Simulated Live Cards (Tab 2)", caption_style))
 
     story.append(PageBreak())
 
     # =========================================================================
-    # PAGE 19: CHAPTER 12: SCREENSHOTS — TAB 2 (LOG DIAGNOSTICS)
+    # PAGE 16: POINT 12: APPLICATION SCREENSHOTS (TAB 2 LOG DIAGNOSTICS)
     # =========================================================================
     story.append(Paragraph("12. Application Screenshots (Continued — Airflow Log Diagnostics)", h1_style))
     story.append(Paragraph("Figure 12.5 illustrates the natural language Airflow log diagnostic parser in Tab 2:", body_style))
-    story.append(Spacer(1, 6))
+    story.append(Spacer(1, 4))
 
-    # Figure 12.5 (Full Width)
+    # Figure 12.5
     img_diag_path = os.path.join(FIGURES_DIR, "tab2_log_diagnostic_report.png")
     if os.path.exists(img_diag_path):
-        story.append(Image(img_diag_path, width=460, height=240))
+        story.append(Image(img_diag_path, width=450, height=235))
         story.append(Paragraph("Figure 12.5 — Airflow Log Text Diagnostics & Natural Language Exception Parser (Tab 2)", caption_style))
-    story.append(Spacer(1, 8))
+    story.append(Spacer(1, 6))
 
     story.append(Paragraph(
         "<b>Architectural Functionality Demonstrated:</b> The Log Diagnostics parser allows operators to paste raw Airflow task stack traces "
@@ -1210,18 +1079,18 @@ def build_pdf():
     story.append(PageBreak())
 
     # =========================================================================
-    # PAGE 20: CHAPTER 12: SCREENSHOTS — TAB 3 (PIPELINE INSPECTOR)
+    # PAGE 17: POINT 12: APPLICATION SCREENSHOTS (TAB 3 PIPELINE INSPECTOR)
     # =========================================================================
     story.append(Paragraph("12. Application Screenshots (Continued — Pipeline Architecture)", h1_style))
     story.append(Paragraph("Figure 12.6 displays Tab 3: Airflow Pipeline Inspector with keyframe CSS glowing data conduit animations:", body_style))
-    story.append(Spacer(1, 6))
+    story.append(Spacer(1, 4))
 
-    # Figure 12.6 (Full Width)
+    # Figure 12.6
     img_pipe_path = os.path.join(FIGURES_DIR, "tab3_pipeline_nominal.png")
     if os.path.exists(img_pipe_path):
-        story.append(Image(img_pipe_path, width=460, height=240))
+        story.append(Image(img_pipe_path, width=450, height=235))
         story.append(Paragraph("Figure 12.6 — Airflow Pipeline Inspector Architecture Conduits & Node Health Cards (Tab 3)", caption_style))
-    story.append(Spacer(1, 8))
+    story.append(Spacer(1, 6))
 
     story.append(Paragraph(
         "<b>Architectural Functionality Demonstrated:</b> Tab 3 presents a high-tech animated architectural view of the enterprise pipeline. "
@@ -1234,9 +1103,9 @@ def build_pdf():
     story.append(PageBreak())
 
     # =========================================================================
-    # PAGE 21: SCREENSHOT 12.7 & SECTION 12.1 DEMONSTRATION SEQUENCE
+    # PAGE 18: POINT 12: APPLICATION SCREENSHOTS (SCENARIOS & DEMO SEQUENCE)
     # =========================================================================
-    story.append(Paragraph("12. Application Screenshots (Interactive Scenarios) & Defense Script", h1_style))
+    story.append(Paragraph("12. Application Screenshots (Scenarios) & Defense Script", h1_style))
     
     # Figure 12.7
     img_fault_path = os.path.join(FIGURES_DIR, "tab3_api_500_failure.png")
@@ -1264,7 +1133,7 @@ def build_pdf():
     story.append(PageBreak())
 
     # =========================================================================
-    # PAGE 22: CHAPTER 13: ERROR ANALYSIS AND LIMITATIONS
+    # PAGE 19: POINT 13: ERROR ANALYSIS AND LIMITATIONS
     # =========================================================================
     story.append(Paragraph("13. Error Analysis and Limitations", h1_style))
     story.append(Paragraph("13.1 Potential error categories", h2_style))
@@ -1285,18 +1154,19 @@ def build_pdf():
     t_err.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#1E293B")),
         ('TEXTCOLOR', (0,0), (-1,0), colors.white),
-        ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+        ('FONTNAME', (0,0), (-1,-1), 'Calibri'),
+        ('FONTNAME', (0,0), (-1,0), 'Calibri-Bold'),
         ('FONTSIZE', (0,0), (-1,-1), 7.2),
         ('LEADING', (0,0), (-1,-1), 9.2),
-        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#CBD5E1")),
-        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.HexColor("#F8FAFC")]),
-        ('TOPPADDING', (0,0), (-1,-1), 3),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 3),
+        ('GRID', (0,0), (-1,-1), 0.5, c_border),
+        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, c_bg_light]),
+        ('TOPPADDING', (0,0), (-1,-1), 2.5),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 2.5),
         ('LEFTPADDING', (0,0), (-1,-1), 5),
         ('RIGHTPADDING', (0,0), (-1,-1), 5),
     ]))
     story.append(t_err)
-    story.append(Spacer(1, 6))
+    story.append(Spacer(1, 4))
 
     story.append(Paragraph("13.2 Known limitations", h2_style))
     lims = [
@@ -1317,7 +1187,7 @@ def build_pdf():
     story.append(PageBreak())
 
     # =========================================================================
-    # PAGE 23: CHAPTER 14: CONCLUSION & CHAPTER 15: REFERENCES (PART 1)
+    # PAGE 20: POINT 14: CONCLUSION AND FUTURE SCOPE
     # =========================================================================
     story.append(Paragraph("14. Conclusion and Future Scope", h1_style))
     story.append(Paragraph("14.1 Conclusion", h2_style))
@@ -1331,6 +1201,7 @@ def build_pdf():
         "and dynamic engineering remediation guidance, fulfilling all requirements of Course 2307411T (ANNA).",
         body_style
     ))
+    story.append(Spacer(1, 4))
 
     story.append(Paragraph("14.2 Future scope", h2_style))
     future_points = [
@@ -1341,30 +1212,23 @@ def build_pdf():
     ]
     for fp in future_points:
         story.append(Paragraph(f"• &nbsp; {fp}", bullet_style))
-    story.append(Spacer(1, 4))
 
+    story.append(PageBreak())
+
+    # =========================================================================
+    # PAGE 21: POINT 15: REFERENCES & PROJECT DEFENSE VERIFICATION
+    # =========================================================================
     story.append(Paragraph("15. References", h1_style))
     story.append(Paragraph("Formal academic and industry publications underpinning this work:", body_style))
-    story.append(Spacer(1, 4))
+    story.append(Spacer(1, 3))
 
-    refs_1 = [
+    refs = [
         "[1] S. Hochreiter and J. Schmidhuber, “Long Short-Term Memory,” <i>Neural Computation</i>, vol. 9, no. 8, pp. 1735–1780, 1997. DOI: 10.1162/neco.1997.9.8.1735.",
         "[2] K. Cho, B. van Merrienboer, C. Gulcehre, D. Bahdanau, F. Bougares, H. Schwenk, and Y. Bengio, “Learning Phrase Representations using RNN Encoder-Decoder for Statistical Machine Translation,” in <i>Proc. EMNLP</i>, 2014, pp. 1724–1734. Available: https://arxiv.org/abs/1406.1078.",
         "[3] D. Bahdanau, K. Cho, and Y. Bengio, “Neural Machine Translation by Jointly Learning to Align and Translate,” in <i>Proc. ICLR</i>, 2015. Available: https://arxiv.org/abs/1409.0473.",
         "[4] A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A. N. Gomez, L. Kaiser, and I. Polosukhin, “Attention Is All You Need,” in <i>Advances in Neural Information Processing Systems (NeurIPS)</i>, vol. 30, 2017. Available: https://arxiv.org/abs/1706.03762.",
         "[5] S. He, J. Zhu, P. He, and M. R. Lyu, “Loghub: A Large Collection of System Log Datasets for Automated Log Analysis,” in <i>IEEE International Symposium on Software Reliability Engineering (ISSRE)</i>, 2020. Available: https://arxiv.org/abs/2008.06448.",
-        "[6] M. Du, F. Li, G. Zheng, and V. Srikumar, “DeepLog: Anomaly Detection and Diagnosis from System Logs through Deep Learning,” in <i>Proc. ACM SIGSAC Conference on Computer and Communications Security (CCS)</i>, 2017, pp. 1285–1298."
-    ]
-    for r in refs_1:
-        story.append(Paragraph(r, bullet_style))
-
-    story.append(PageBreak())
-
-    # =========================================================================
-    # PAGE 24: REFERENCES (PART 2) & PROJECT DEFENSE VERIFICATION
-    # =========================================================================
-    story.append(Paragraph("15. References (Continued)", h1_style))
-    refs_2 = [
+        "[6] M. Du, F. Li, G. Zheng, and V. Srikumar, “DeepLog: Anomaly Detection and Diagnosis from System Logs through Deep Learning,” in <i>Proc. ACM SIGSAC Conference on Computer and Communications Security (CCS)</i>, 2017, pp. 1285–1298.",
         "[7] H. Zhou, S. Zhang, J. Peng, S. Zhang, J. Li, H. Xiong, and W. Zhang, “Informer: Beyond Efficient Transformer for Long Sequence Time-Series Forecasting,” in <i>Proc. AAAI Conference on Artificial Intelligence</i>, vol. 35, no. 12, pp. 11106–11115, 2021.",
         "[8] Y. Wang, T. Zhang, and X. Chen, “Real-Time Failure Prediction in Distributed Cloud Data Pipelines,” <i>IEEE Transactions on Cloud Computing</i>, vol. 12, no. 2, pp. 412–425, 2024.",
         "[9] Apache Airflow Documentation, “Task Execution Lifecycle, Logging, and Data Pipelines,” Apache Software Foundation, 2024. Available: https://airflow.apache.org/docs/",
@@ -1372,9 +1236,9 @@ def build_pdf():
         "[11] M. Zaharia et al., “Apache Spark: A Unified Engine for Big Data Processing,” <i>Communications of the ACM</i>, vol. 59, no. 11, pp. 56–65, 2016.",
         "[12] Streamlit Community Cloud Documentation, “Session State, Reactivity, and Secure Secret Management,” Snowflake Inc., 2024. Available: https://docs.streamlit.io/"
     ]
-    for r in refs_2:
+    for r in refs:
         story.append(Paragraph(r, bullet_style))
-    story.append(Spacer(1, 14))
+    story.append(Spacer(1, 8))
 
     # Formal Academic Defense Verification Box
     story.append(Paragraph("Academic Project Defense Verification & Course Outcome Mapping", h2_style))
@@ -1392,14 +1256,15 @@ def build_pdf():
         ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#F8FAFC")),
         ('BOX', (0,0), (-1,-1), 1, colors.HexColor("#CBD5E1")),
         ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#E2E8F0")),
-        ('TOPPADDING', (0,0), (-1,-1), 4),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 4),
+        ('FONTNAME', (0,0), (-1,-1), 'Calibri'),
+        ('TOPPADDING', (0,0), (-1,-1), 3),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 3),
         ('LEFTPADDING', (0,0), (-1,-1), 8),
         ('RIGHTPADDING', (0,0), (-1,-1), 8),
         ('VALIGN', (0,0), (-1,-1), 'TOP'),
     ]))
     story.append(t_sign)
-    story.append(Spacer(1, 15))
+    story.append(Spacer(1, 10))
 
     # Sign-off footer
     signatures_data = [
@@ -1409,8 +1274,9 @@ def build_pdf():
     ]
     t_sigs = Table(signatures_data, colWidths=[168, 168, 168])
     t_sigs.setStyle(TableStyle([
-        ('TOPPADDING', (0,0), (-1,-1), 6),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+        ('FONTNAME', (0,0), (-1,-1), 'Calibri'),
+        ('TOPPADDING', (0,0), (-1,-1), 4),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 4),
     ]))
     story.append(t_sigs)
 
